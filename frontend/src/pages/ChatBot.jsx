@@ -6,6 +6,7 @@ const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false); 
   const messagesEndRef = useRef(null);
   const token = localStorage.getItem("token");
 
@@ -22,6 +23,9 @@ const ChatBot = () => {
       const newMessages = [...messages, { role: "user", content: input }];
       setMessages(newMessages);
 
+      
+      setIsTyping(true);
+
       try {
         const response = await axios.post(
           "http://localhost:8000/api/chatbot",
@@ -35,7 +39,12 @@ const ChatBot = () => {
         );
 
         const botResponse = response.data;
-        setMessages([...newMessages, { role: "bot", content: botResponse }]);
+
+       
+        setMessages([
+          ...newMessages,
+          { role: "bot", content: botResponse },
+        ]);
       } catch (error) {
         console.error("Erreur avec le chatbot:", error);
         setMessages([
@@ -45,16 +54,32 @@ const ChatBot = () => {
             content: "Une erreur est survenue. Réessayez plus tard.",
           },
         ]);
+      } finally {
+        // Désactiver l'indicateur de saisie
+        setIsTyping(false);
       }
 
       setInput(""); 
     }
   };
+
+  const TypingIndicator = () => {
+    const [dots, setDots] = useState("");
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setDots((prev) => (prev.length < 3 ? prev + "." : ""));
+      }, 500); 
+
+      return () => clearInterval(interval); 
+    }, []);
+
+    return <span className="typing-indicator">Le bot écrit{dots}</span>;
+  };
+
   return (
     <div className={`chatbot-container ${isOpen ? "open" : ""}`}>
-
-        <img src={manette} alt="" className="chatbot-toggle" onClick={toggleChatbot} />
-    
+      <img src={manette} alt="" className="chatbot-toggle" onClick={toggleChatbot} />
 
       {isOpen && (
         <div className="chatbot-window">
@@ -65,10 +90,17 @@ const ChatBot = () => {
           <div className="chatbot-body">
             {messages.map((msg, index) => (
               <div key={index} className={`chat-message ${msg.role}`}>
-                <strong className={msg.role === "user" ? "text-primary" : "text-success"}>{msg.role === "user" ? "Vous" : "Bot"}:</strong>{" "}
+                <strong className={msg.role === "user" ? "text-primary" : "text-success"}>
+                  {msg.role === "user" ? "Vous" : "Bot"}:
+                </strong>{" "}
                 {msg.content}
               </div>
             ))}
+            {isTyping && (
+              <div className="chat-message bot">
+                <TypingIndicator />
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
           <div className="chatbot-input">

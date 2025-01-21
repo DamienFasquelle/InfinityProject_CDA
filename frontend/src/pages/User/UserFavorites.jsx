@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col } from 'react-bootstrap';
-import GameCard from '../components/GameCard';
-import { fetchGameDetails } from '../services/rawgService';
+import { fetchGameDetails } from '../../services/rawgService';
+import GameCard from '../../components/GameCard';
 
-const UserDashboard = () => {
+const UserFavorites = () => {
   const [favoriteGames, setFavoriteGames] = useState([]); 
   const [gameDetails, setGameDetails] = useState([]); 
   const [loading, setLoading] = useState(false); 
@@ -66,7 +66,7 @@ const UserDashboard = () => {
   }, [favoriteGames]); 
   return (
     <div className="user-dashboard-container">
-      <h1 className="mb-4">Tableau de Bord Utilisateur</h1>
+      <h1 className="mb-4">Mes jeux en favoris</h1>
 
       <Row className="justify-content-center">
         {loading ? (
@@ -94,4 +94,4 @@ const UserDashboard = () => {
   );
 };
 
-export default UserDashboard;
+export default UserFavorites;

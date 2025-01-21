@@ -22,8 +22,8 @@ const SignIn = () => {
       
       setSuccess(true);
       setError('');
-      alert('Inscription réussie !');
-      navigate('/');
+      alert('Inscription réussie, veuillez vous connecter !');
+      navigate('/login');
     } catch (err) {
       setError('Erreur lors de l’inscription. Veuillez réessayer.');
       setSuccess(false);

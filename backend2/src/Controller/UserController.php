@@ -42,9 +42,6 @@ class UserController extends AbstractController
     #[Route('/api/users/{id}', name: 'get_user_by_id', methods: ['GET'])]
     public function getUserById(int $id, UserRepository $userRepository): JsonResponse
     {
-        if (!$this->isGranted('ROLE_ADMIN')) {
-            throw new AccessDeniedException('Accès interdit, vous devez être administrateur.');
-        }
 
         $user = $userRepository->find($id);
 
@@ -93,9 +90,6 @@ class UserController extends AbstractController
     #[Route('/api/users/{userId}/comments', name: 'get_user_comments', methods: ['GET'])]
     public function getUserComments(int $userId, UserRepository $userRepository): JsonResponse
     {
-        if (!$this->isGranted('ROLE_ADMIN')) {
-            throw new AccessDeniedException('Accès interdit, vous devez être administrateur.');
-        }
 
         $user = $userRepository->find($userId);
 
@@ -115,8 +109,8 @@ class UserController extends AbstractController
                 'content' => $comment->getContent(),
                 'rating' => $comment->getRating(),
                 'created_at' => $comment->getCreatedAt()->format('Y-m-d H:i:s'),
-                'gameId' => $comment->getIdGames()->getId(),
-                'gameTitle' => $comment->getIdGames()->getTitle(),
+                'gameId' => $comment->getIdGames()
+                
             ];
         }, $comments->toArray());
 
@@ -151,9 +145,6 @@ class UserController extends AbstractController
     #[Route('/api/users/{id}', name: 'update_user', methods: ['PUT'])]
     public function updateUser(int $id, Request $request, UserRepository $userRepository, EntityManagerInterface $entityManager): JsonResponse
     {
-        if (!$this->isGranted('ROLE_ADMIN')) {
-            throw new AccessDeniedException('Accès interdit, vous devez être administrateur.');
-        }
 
         $user = $userRepository->find($id);
 

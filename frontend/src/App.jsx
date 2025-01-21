@@ -10,12 +10,12 @@ import About from "./pages/About";
 import Privacy from "./pages/Privacy";
 import Contact from "./pages/Contact";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
-import UserDashboard from "./pages/UserDashboard";
 import ForgotPassword from "./pages/ForgotPassword";
 import GamePage from "./pages/GamePage";
 import PrivateRoute from "./components/PrivateRoute";
 import ChatBot from "./pages/ChatBot";
 import { AuthContext } from "./providers/AuthProvider";
+import UserDashboard from "./pages/User/UserDashboard";
 
 const App = () => {
   const { isAuthenticated } = useContext(AuthContext);
