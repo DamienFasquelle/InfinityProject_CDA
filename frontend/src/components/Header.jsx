@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Navbar, Nav, Container, Row, Col, Form, Button } from "react-bootstrap";
+import { Navbar, Nav, Container, Form, Button, Row, Col, InputGroup } from "react-bootstrap";
+import { FaTimes } from "react-icons/fa";
 import logo from "../assets/images/logo.png";
 import { useGames } from "../providers/GameProvider";
 import { AuthContext } from "../providers/AuthProvider";
@@ -13,15 +14,23 @@ const Header = () => {
   const navigate = useNavigate();
   const searchRef = useRef(null);
 
-  // Gestion de la recherche
+  // Mise à jour du champ de recherche
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
     handleSearch(e.target.value);
     setShowResults(true);
   };
 
+  // Réinitialisation du champ de recherche
+  const clearSearch = () => {
+    setSearchQuery("");
+    setShowResults(false);
+    handleSearch(""); // Mettre à jour les résultats
+  };
+
+  // Sélection d'un résultat
   const handleSelectResult = (selected) => {
-    const selectedGame = searchResults.find(result => result.name === selected);
+    const selectedGame = searchResults.find((result) => result.name === selected);
     if (selectedGame) {
       localStorage.setItem("selectedGameId", selectedGame.id);
       navigate(`/gamepage/${selectedGame.id}`);
@@ -30,6 +39,7 @@ const Header = () => {
     setShowResults(false);
   };
 
+  // Clic en dehors de la zone de recherche
   const handleClickOutside = (e) => {
     if (searchRef.current && !searchRef.current.contains(e.target)) {
       setShowResults(false);
@@ -48,77 +58,66 @@ const Header = () => {
       <Navbar expand="lg" bg="dark" variant="dark" className="py-3">
         <Container>
           {/* Logo */}
-          <Navbar.Brand as={Link} to="/" className="col-12 col-lg-auto">
-            <img
-              src={logo}
-              alt="Infinity Games Logo"
-              className="navbar-logo d-inline-block align-top"
-              height="40"
-            />
+          <Navbar.Brand as={Link} to="/">
+            <img src={logo} alt="Infinity Games Logo" height="40" />
           </Navbar.Brand>
 
-          {/* Menu Burger (responsive) */}
+          {/* Menu Burger pour mobile */}
           <Navbar.Toggle aria-controls="navbar-nav" />
 
-          <Navbar.Collapse id="navbar-nav" className="col-12 col-lg-auto">
-            <Row className="w-100">
-              <Col xs={12} lg={8}>
-                <Nav className="d-flex justify-space-around w-100">
-                  <Nav.Link as={Link} to="/games">
-                    Jeux
-                  </Nav.Link>
-                  {isAdmin && (
-                    <Nav.Link as={Link} to="/admin">
-                      Administration
-                    </Nav.Link>
-                  )}
-                  {isUser && !isAdmin && (
-                    <Nav.Link as={Link} to="/user">
-                      Mon compte
-                    </Nav.Link>
-                  )}
-                </Nav>
-              </Col>
+          <Navbar.Collapse id="navbar-nav">
+            {/* Menu à gauche */}
+            <Nav className="me-auto">
+              <Nav.Link as={Link} to="/games">Jeux</Nav.Link>
+              {isAdmin && <Nav.Link as={Link} to="/admin">Administration</Nav.Link>}
+              {isUser && !isAdmin && (
+                <>
+                  <Nav.Link as={Link} to="/recommandation">Jeux recommandés</Nav.Link>
+                  <Nav.Link as={Link} to="/user">Mon compte</Nav.Link>
+                </>
+              )}
+            </Nav>
 
-              {/* Barre de recherche */}
-              <Col xs={12} lg={4} className="d-flex justify-content-end align-items-center">
-                <Form className="search-form-container" role="search" style={{ width: '100%' }}>
-                  <input
-                    type="text"
-                    placeholder="Trouver votre jeu"
-                    className="search-input form-control"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                  />
+            <Form className="search-form" ref={searchRef}>
+              <Row className="align-items-center">
+                <Col xs={12} md={12} lg={12}>
+                  <InputGroup>
+                    <Form.Control
+                      type="text"
+                      placeholder="Rechercher un jeu"
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                      className="form-control"
+                    />
+                    {searchQuery && (
+                      <InputGroup.Text onClick={clearSearch} className="clear-icon">
+                        <FaTimes style={{ cursor: "pointer" }} />
+                      </InputGroup.Text>
+                    )}
+                  </InputGroup>
                   {showResults && searchQuery && (
-                    <select
-                      size="5"
-                      onChange={(e) => handleSelectResult(e.target.value)}
-                      className="search-dropdown form-control"
-                    >
-                      {searchResults?.map((result, index) => (
-                        <option key={index} value={result.name}>
+                    <div className="search-results">
+                      {searchResults.map((result, index) => (
+                        <div
+                          key={index}
+                          onClick={() => handleSelectResult(result.name)}
+                          className="search-item"
+                        >
                           {result.name}
-                        </option>
+                        </div>
                       ))}
-                    </select>
+                    </div>
                   )}
-                </Form>
+                </Col>
+              </Row>
+            </Form>
 
-                {/* Boutons de connexion / déconnexion */}
-                {isAuthenticated ? (
-                  <>
-                    <Button variant="danger" onClick={logout} className="ms-2">
-                      Déconnexion
-                    </Button>
-                  </>
-                ) : (
-                  <Link className="btn btn-gradient ms-2" to="/login">
-                    Connexion
-                  </Link>
-                )}
-              </Col>
-            </Row>
+            {/* Bouton de connexion/déconnexion */}
+            {isAuthenticated ? (
+              <Button variant="danger" onClick={logout}>Déconnexion</Button>
+            ) : (
+              <Link to="/login" className="btn btn-gradient">Connexion</Link>
+            )}
           </Navbar.Collapse>
         </Container>
       </Navbar>

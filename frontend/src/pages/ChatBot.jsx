@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import manette from "../assets/images/manette.svg";
 
-const ChatBot = () => {
+const ChatBot = ({ onGameRecommendations }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -22,10 +22,9 @@ const ChatBot = () => {
     if (input.trim()) {
       const newMessages = [...messages, { role: "user", content: input }];
       setMessages(newMessages);
-
-      
+  
       setIsTyping(true);
-
+  
       try {
         const response = await axios.post(
           "http://localhost:8000/api/chatbot",
@@ -37,14 +36,22 @@ const ChatBot = () => {
             },
           }
         );
-
+  
         const botResponse = response.data;
-
-       
-        setMessages([
-          ...newMessages,
-          { role: "bot", content: botResponse },
-        ]);
+  
+        if (botResponse.startsWith("Je vous recommande les jeux suivants :")) {
+          const gameTitles = extractGameTitles(botResponse);
+          onGameRecommendations(gameTitles);
+          setMessages([
+            ...newMessages,
+            { role: "bot", content: botResponse },
+          ]);
+        } else {
+          setMessages([
+            ...newMessages,
+            { role: "bot", content: botResponse },
+          ]);
+        }
       } catch (error) {
         console.error("Erreur avec le chatbot:", error);
         setMessages([
@@ -55,12 +62,20 @@ const ChatBot = () => {
           },
         ]);
       } finally {
-        // Désactiver l'indicateur de saisie
         setIsTyping(false);
       }
-
-      setInput(""); 
+  
+      setInput("");
     }
+  };
+  
+  const extractGameTitles = (responseText) => {
+    const stopPhrase = "je vous invite à vous diriger sur la page Jeux recommandés, vous y trouverez toutes les recommandations de jeux";
+    const textBeforeStopPhrase = responseText.split(stopPhrase)[0].trim();
+    const gameList = textBeforeStopPhrase.replace("Je vous recommande les jeux suivants :", "").trim();
+    const titles = gameList.split(",").map(title => title.trim());
+    const gameObjects = titles.map(title => ({ title }));
+    return gameObjects;
   };
 
   const TypingIndicator = () => {

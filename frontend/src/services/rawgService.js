@@ -138,7 +138,7 @@ export const fetchRecentGames = async (date = '2024-01-01') => {
    * @returns {Promise<Object>} Les résultats de recherche.
    */
   export const searchGames = async (query) => {
-    const url = `${BASE_URL}/games?key=${API_KEY}&search=${query}`;
+    const url = `${BASE_URL}/games?key=${API_KEY}&search=${query}&exact=true`;
     const response = await axios.get(url);
     return response.data;
   };

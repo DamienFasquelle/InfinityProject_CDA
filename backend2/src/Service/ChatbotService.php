@@ -63,7 +63,7 @@ class ChatbotService
                     'messages' => [
                         [
                             'role' => 'system',
-                            'content' => 'Tu es un assistant pour un site web qui propose des recommandations de jeux vidéo en utilisant l’API RAWG.io. Toutes les questions doivent être traitées dans ce contexte.'
+                            'content' => 'Tu es un assistant qui aide les utilisateurs à trouver des jeux vidéo similaires à ceux qu\'ils mentionnent. Lorsque l\'utilisateur demande des recommandations, tu dois répondre sous la forme d\'un tableau JSON avec des objets contenant des titres de jeux. Par exemple : [{"title": "Jeu 1"}, {"title": "Jeu 2"}].'
                         ],
                         ['role' => 'user', 'content' => $message],
                     ],
@@ -71,9 +71,23 @@ class ChatbotService
                     'temperature' => 0.7,
                 ],
             ]);
-
+    
             $data = $response->toArray();
-            return $data['choices'][0]['message']['content'] ?? "Je n'ai pas pu obtenir de réponse.";
+    
+            // Essayer de décoder la réponse en format JSON
+            $games = json_decode($data['choices'][0]['message']['content'], true);
+    
+            if (is_array($games) && !empty($games)) {
+                // Si la réponse est un tableau d'objets avec des titres de jeux
+                $gameTitles = array_map(function ($game) {
+                    return $game['title'] ?? 'Titre inconnu';
+                }, $games);
+    
+                // Convertir le tableau de titres en une chaîne de caractères
+                return "Je vous recommande les jeux suivants : " . implode(", ", $gameTitles) . ", je vous invite à vous diriger sur la page Jeux recommandés, vous y trouverez toutes les recommandations de jeux.";
+            }
+    
+            return "Je suis un chatbot programmé pour répondre au besoin de recommandations de jeux vidéo. Merci de me poser une question en rapport avec les jeux vidéo.";
         } catch (\Exception $e) {
             if ($e->getCode() === 429) {
                 return "Trop de requêtes envoyées. Merci d'attendre un moment avant de réessayer.";
@@ -81,24 +95,6 @@ class ChatbotService
             return "Une erreur est survenue lors de l'appel à OpenAI : " . $e->getMessage();
         }
     }
-
-    private function getRecommendedGames(): array
-    {
-        try {
-            $response = $this->httpClient->request('GET', "https://api.rawg.io/api/games?key={$this->rawgApiKey}&ordering=-rating&page_size=5");
-            $data = $response->toArray();
     
-         
-            return array_map(fn($game) => [
-                'id' => $game['id'],  
-                'name' => $game['name'],
-                'image' => $game['background_image'],
-                'rating' => $game['rating'],
-            ], $data['results'] ?? []);
-        } catch (\Exception $e) {
-          
-            return [];
-        }
-    }
     
 }

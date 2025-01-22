@@ -16,12 +16,13 @@ import PrivateRoute from "./components/PrivateRoute";
 import ChatBot from "./pages/ChatBot";
 import { AuthContext } from "./providers/AuthProvider";
 import UserDashboard from "./pages/User/UserDashboard";
+import RecommandationGame from "./pages/RecommandationGame";
 
 const App = () => {
   const { isAuthenticated } = useContext(AuthContext);
   const [showChatBot, setShowChatBot] = useState(false);
+  const [recommendedGames, setRecommendedGames] = useState([]);
 
-  // Affiche le ChatBot dès que l'utilisateur est authentifié
   useEffect(() => {
     if (isAuthenticated) {
       setShowChatBot(true);
@@ -29,6 +30,10 @@ const App = () => {
       setShowChatBot(false);
     }
   }, [isAuthenticated]);
+
+  const handleGameRecommendations = (games) => {
+    setRecommendedGames(games);
+  };
 
   return (
     <>
@@ -54,6 +59,15 @@ const App = () => {
           }
         />
         <Route
+          path="/recommandation"
+          element={
+            <PrivateRoute allowedRoles={["ROLE_USER", "ROLE_ADMIN"]}>
+              <RecommandationGame games={recommendedGames} />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
           path="/admin"
           element={
             <PrivateRoute allowedRoles={["ROLE_ADMIN"]}>
@@ -63,7 +77,7 @@ const App = () => {
         />
       </Routes>
 
-      {showChatBot && <ChatBot />}
+      {showChatBot && <ChatBot onGameRecommendations={handleGameRecommendations} />}
 
       <Footer />
     </>

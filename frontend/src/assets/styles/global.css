@@ -172,83 +172,87 @@ main{
   background-color: #343a40;
 }
 
-.header-container .navbar {
-  padding: 0.5rem 1rem;
-}
-
-.header-container .navbar-brand img {
-  max-width: 120px;
-  height: auto;
-}
-
-.navbar-nav .nav-item .nav-link {
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  color: #00ffff !important;
-  transition: color 0.3s;
-}
-
-.navbar-nav .nav-item .nav-link:hover {
-  color: #0088ff !important;
-}
-
-/* Search */
-.search-bar {
-  background-color: #1a1a1a;
-  color: #fff;
-  border: 1px solid #0088ff;
-}
-
-.search-bar::placeholder {
-  color: #aaa;
-}
-
-.search-button {
-  border: 1px solid #00ffff;
-  color: #00ffff;
-  background-color: transparent;
-  transition: all 0.3s;
-  height: 2.5rem;
-  padding: 0.25rem 1rem;
-}
-
-.search-button:hover {
-  background-color: #00ffff;
-  color: #000;
-}
-
-.search-form {
+.navbar {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbar-brand img {
+  max-width: 120px;
+}
+
+.navbar-nav {
+  flex-direction: row;
+  gap: 15px;
+}
+
+.navbar-nav .nav-link {
+  color: #00ffff;
+  font-size: 1rem;
+  padding: 0.5rem;
+  transition: color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+  color: #0088ff;
+}
+
+/* Recherche */
+.search-form {
   position: relative;
-  width: 300px;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
 }
 
 .search-form input {
   width: 100%;
-  padding: 6px;
-  border-radius: 6px;
+  padding: 0.5rem 1rem;
   border: 1px solid #0088ff;
+  border-radius: 5px;
   background-color: #1a1a1a;
   color: #fff;
-  font-size: 1rem;
 }
 
-.search-form select {
-  width: 100%;
-  padding: 12px;
-  border-radius: 6px;
-  border: 1px solid #0088ff;
-  background-color: #1a1a1a;
-  color: #fff;
+.search-results {
   position: absolute;
-  top: 35px;
+  top: 100%;
   left: 0;
-  z-index: 999;
+  right: 0;
+  background-color: #1a1a1a;
+  border: 1px solid #0088ff;
+  border-radius: 5px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
 }
 
-.search-form button {
-  display: none;
+.search-item {
+  padding: 10px;
+  color: #fff;
+  cursor: pointer;
 }
+
+.search-item:hover {
+  background-color: #0088ff;
+  color: #fff;
+}
+
+/* Boutons */
+.btn-gradient {
+  background: linear-gradient(90deg, #00ffff, #0088ff);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+}
+
+.btn-gradient:hover {
+  background: linear-gradient(90deg, #0088ff, #00ffff);
+  color: #000;
+}
+
 
 /* Button */
 .btn-gradient {
