@@ -1,19 +1,10 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import {
-  fetchGameDetails,
-  fetchGameScreenshots,
-  fetchDevelopers,
-  fetchCreators,
-  fetchStores,
-  fetchGameVideos,
-  fetchSimilarGames,
-  fetchGameSeries,
-} from "../services/rawgService";
+import { fetchGameDetails, fetchGameScreenshots, fetchDevelopers, fetchCreators, fetchStores, fetchGameVideos, fetchSimilarGames, fetchGameSeries } from "../services/rawgService";
 import { Button, Col, Form, Row } from "react-bootstrap";
 import GameCard from "../components/GameCard";
-import { jwtDecode } from "jwt-decode";
 import { AuthContext } from "../providers/AuthProvider";
+import Comments from "./Comments";
 
 const GamePage = () => {
   const { id } = useParams();
@@ -26,15 +17,8 @@ const GamePage = () => {
   const [similarGames, setSimilarGames] = useState([]);
   const [gamesSeries, setGamesSeries] = useState([]);
   const [comments, setComments] = useState([]);
-  const [isEditing, setIsEditing] = useState(null);
-  const [editedComment, setEditedComment] = useState("");
-  const [editedRating, setEditedRating] = useState(null);
-  const [newComment, setNewComment] = useState("");
-  const [newRating, setNewRating] = useState(1);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [isConnected, setIsConnected] = useState(false);
-    const { isAdmin } = useContext(AuthContext);
+  const { isAdmin } = useContext(AuthContext);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -75,97 +59,23 @@ const GamePage = () => {
     fetchDetails();
   }, [id]);
 
-  const handleNewCommentSubmit = async (e) => {
-    const token = localStorage.getItem("token");
-    e.preventDefault();
-    if (!token) {
-      setError("Vous devez être connecté pour publier un commentaire.");
-      return;
-    }
-    const decodedToken = jwtDecode(token);
-    const userRoles = decodedToken.roles || [];
-    const isUserRole = userRoles.includes("ROLE_USER");
-
-    if (!isUserRole) {
-      setError("Vous devez être un utilisateur pour publier un commentaire.");
-      return;
-    }
-
-    const commentData = {
-      content: newComment,
-      rating: newRating,
-      gameId: id,
-    };
-
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/api/comment`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(commentData),
-      });
-
-      if (response.status === 201) {
-        setNewComment("");
-        setNewRating(1);
-        setSuccess("Commentaire ajouté avec succès.");
-        window.location.reload();
-      }
-    } catch (err) {
-      setError("Une erreur s'est produite.");
-      console.error("Erreur de requête :", err);
-    }
+  const handleCommentAdded = () => {
+    // Recharger ou mettre à jour la liste des commentaires après ajout
+    fetch(`http://127.0.0.1:8000/comments/${id}`)
+      .then(response => response.json())
+      .then(data => setComments(data));
   };
 
-  const handleDeleteComment = async (commentId) => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/api/comment/${commentId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.status === 200) {
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error("Erreur lors de la suppression du commentaire", error);
-    }
+  const handleCommentDeleted = (commentId) => {
+    // Filtrer le commentaire supprimé
+    setComments(comments.filter(comment => comment.id !== commentId));
   };
 
-  const handleEditComment = async (commentId) => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/api/comment/${commentId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          content: editedComment,
-          rating: editedRating,
-          gameId: id,
-        }),
-      });
-      if (response.status === 200) {
-        setIsEditing(null);
-        setEditedComment("");
-        setEditedRating(null);
-        window.location.reload();
-      }
-    } catch (error) {
-      console.error("Erreur lors de la modification du commentaire", error);
-    }
-  };
-
-  const startEditing = (commentId, content, rating) => {
-    setIsEditing(commentId);
-    setEditedComment(content);
-    setEditedRating(rating);
+  const handleCommentEdited = () => {
+    // Recharger ou mettre à jour la liste des commentaires après modification
+    fetch(`http://127.0.0.1:8000/comments/${id}`)
+      .then(response => response.json())
+      .then(data => setComments(data));
   };
 
   if (!gameDetails)
@@ -173,7 +83,7 @@ const GamePage = () => {
 
   return (
     <div className="game-page-container">
-      <div
+       <div
         className="game-header"
         style={{
           backgroundImage: `url(${gameDetails.background_image})`,
@@ -355,121 +265,16 @@ const GamePage = () => {
               <p>Aucune vidéo disponible.</p>
             )}
           </section>
-
-          {/* Commentaires */}
-          <section className="my-4">
-            <h2>Commentaires</h2>
-            {comments.length > 0 ? (
-              <div className="comments-list">
-                {comments.map((comment) => {
-                  const token = localStorage.getItem('token');
-                  const decodedToken = token ? jwtDecode(token) : null;
-                  const userId = decodedToken?.userId;
-                  const isAdmin = decodedToken?.roles?.includes('ROLE_ADMIN');
-                  return (
-                    <div key={comment.id} className="comment">
-                      {isEditing === comment.id ? (
-                        <div>
-                          <textarea
-                            value={editedComment}
-                            onChange={(e) => setEditedComment(e.target.value)}
-                          />
-                          <input
-                            type="number"
-                            min="1"
-                            max="5"
-                            value={editedRating}
-                            onChange={(e) =>
-                              setEditedRating(Number(e.target.value))
-                            }
-                          />
-                          <button
-                            onClick={() => handleEditComment(comment.id)}
-                            className="btn-gradient"
-                          >
-                            Enregistrer
-                          </button>
-                          <button
-                            onClick={() => setIsEditing(null)}
-                            className="btn-danger"
-                          >
-                            Annuler
-                          </button>
-                        </div>
-                      ) : (
-                        <div>
-                          <p>
-                            <strong>{comment.user}</strong> - {comment.created_at}
-                          </p>
-                          <p>{comment.content}</p>
-                          <p>Note: {comment.rating} / 5</p>
-                          {(comment.userId === userId || isAdmin) && (
-                            <div>
-                              <button
-                                onClick={() =>
-                                  startEditing(comment.id, comment.content, comment.rating)
-                                }
-                                className="btn-gradient"
-                              >
-                                Modifier
-                              </button>
-                              <button
-                                onClick={() => handleDeleteComment(comment.id)}
-                                className="btn-danger"
-                              >
-                                Supprimer
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p>Aucun commentaire pour ce jeu.</p>
-            )}
-          </section>
-
-          {isConnected && !isAdmin && (
-            <section className="my-4">
-              <h3>Ajouter un Commentaire</h3>
-              {error && <div className="alert alert-danger">{error}</div>}
-              {success && <div className="alert alert-success">{success}</div>}
-              <Form onSubmit={handleNewCommentSubmit}>
-                <Form.Group controlId="content">
-                  <Form.Label>Votre Commentaire</Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    rows={3}
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    required
-                  />
-                </Form.Group>
-
-                <Form.Group controlId="rating">
-                  <Form.Label>Note (1 à 5)</Form.Label>
-                  <Form.Control
-                    as="select"
-                    value={newRating}
-                    onChange={(e) => setNewRating(Number(e.target.value))}
-                    required
-                  >
-                    {[1, 2, 3, 4, 5].map((rating) => (
-                      <option key={rating} value={rating}>
-                        {rating}
-                      </option>
-                    ))}
-                  </Form.Control>
-                </Form.Group>
-
-                <Button type="submit">Soumettre</Button>
-              </Form>
-            </section>
-          )}
-        </div>
+      <Comments
+        comments={comments}
+        gameId={id}
+        isConnected={isConnected}
+        isAdmin={isAdmin}
+        onCommentAdded={handleCommentAdded}
+        onCommentDeleted={handleCommentDeleted}
+        onCommentEdited={handleCommentEdited}
+      />
+      </div>
       </div>
     </div>
   );

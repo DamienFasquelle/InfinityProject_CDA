@@ -1,19 +1,17 @@
-# Rediriger vers la version sans www
+# Rediriger vers la version sans www et en HTTPS
 <IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteCond %{HTTP_HOST} ^www\.cfthbordeaux\.com [NC]
-RewriteRule ^(.*)$ http://cfthbordeaux.com/$1 [R=301,L]
+RewriteRule ^(.*)$ https://cfthbordeaux.com/$1 [R=301,L]
 </IfModule>
 
 # Gérer les redirections pour React Router
 <IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteBase /
-
-# Rediriger toutes les requêtes vers index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.php [L]
+RewriteRule ^ /index.html [L]
 </IfModule>
 
 # Gzip Compression
@@ -33,7 +31,7 @@ RewriteRule ^ index.php [L]
   ExpiresByType text/javascript "access plus 1 month"
 </IfModule>
 
-# Désactiver le cache pour index.php pour éviter les problèmes de navigation
+# Désactiver le cache pour index.html
 <FilesMatch "index\.(php|html)$">
   <IfModule mod_headers.c>
     Header set Cache-Control "no-cache, no-store, must-revalidate"
@@ -41,3 +39,14 @@ RewriteRule ^ index.php [L]
     Header set Expires 0
   </IfModule>
 </FilesMatch>
+
+# Configuration des headers CORS
+<IfModule mod_headers.c>
+    SetEnvIf Origin "http(s)?://(localhost:3000|infinitygames\.ddvportfolio\.com|api\.ddvportfolio\.com)" CORS_ORIGIN=$0
+    Header set Access-Control-Allow-Origin "%{CORS_ORIGIN}e" env=CORS_ORIGIN
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+    Header always set Access-Control-Allow-Credentials "true"
+</IfModule>
+
+

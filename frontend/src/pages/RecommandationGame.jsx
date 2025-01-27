@@ -41,7 +41,6 @@ const RecommandationGame = ({ games }) => {
   if (error) {
     return <div>{error}</div>;
   }
-  console.log(detailedGames);
 
   return (
     <div>

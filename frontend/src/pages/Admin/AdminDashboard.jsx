@@ -6,10 +6,12 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const token = localStorage.getItem('token'); 
 
+  const OVH_URL = process.env.REACT_APP_OVH_URL;
+
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/comments', {
+        const response = await fetch(`${OVH_URL}/comments`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -29,7 +31,7 @@ const AdminDashboard = () => {
 
     const fetchUsers = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/users', {
+        const response = await fetch(`${OVH_URL}/users`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`, 

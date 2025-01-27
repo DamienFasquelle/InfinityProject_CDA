@@ -5,6 +5,8 @@ export const FavoritesContext = createContext();
 export const FavoritesProvider = ({ children }) => {
   const [favoriteGameIds, setFavoriteGameIds] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const OVH_URL = process.env.REACT_APP_OVH_URL;
+
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -13,7 +15,7 @@ export const FavoritesProvider = ({ children }) => {
     if (token) {
       const fetchFavorites = async () => {
         try {
-          const response = await fetch('http://127.0.0.1:8000/api/favorite/list', {
+          const response = await fetch(`${OVH_URL}/favorite/list`, {
             method: 'GET',
             headers: {
               Authorization: `Bearer ${token}`,
@@ -45,8 +47,8 @@ export const FavoritesProvider = ({ children }) => {
     const token = localStorage.getItem('token');
     const alreadyFavorite = isFavorite(gameId);
     const url = alreadyFavorite
-      ? 'http://127.0.0.1:8000/api/favorite/remove'
-      : 'http://127.0.0.1:8000/api/favorite/add';
+      ? `${OVH_URL}/favorite/remove`
+      : `${OVH_URL}/favorite/add`;
 
     try {
       const response = await fetch(url, {

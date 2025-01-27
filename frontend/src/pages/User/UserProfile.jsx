@@ -61,7 +61,6 @@ const UserProfile = () => {
       const updatedData = {
         username: formData.get("username"),
         email: formData.get("email"),
-        // Si le mot de passe est vide, on ne l'envoie pas
         password: formData.get("password") ? formData.get("password") : undefined,
       };
   

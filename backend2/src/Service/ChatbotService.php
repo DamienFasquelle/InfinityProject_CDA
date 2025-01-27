@@ -74,16 +74,15 @@ class ChatbotService
     
             $data = $response->toArray();
     
-            // Essayer de décoder la réponse en format JSON
+
             $games = json_decode($data['choices'][0]['message']['content'], true);
     
             if (is_array($games) && !empty($games)) {
-                // Si la réponse est un tableau d'objets avec des titres de jeux
+             
                 $gameTitles = array_map(function ($game) {
                     return $game['title'] ?? 'Titre inconnu';
                 }, $games);
     
-                // Convertir le tableau de titres en une chaîne de caractères
                 return "Je vous recommande les jeux suivants : " . implode(", ", $gameTitles) . ", je vous invite à vous diriger sur la page Jeux recommandés, vous y trouverez toutes les recommandations de jeux.";
             }
     

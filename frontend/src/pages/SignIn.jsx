@@ -10,15 +10,22 @@ const SignIn = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  const OVH_URL = process.env.REACT_APP_OVH_URL;
+  const APP_URL_LOCAL = process.env.REACT_APP_URL_LOCAL;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     try {
-      const response = await axios.post('http://127.0.0.1:8000/register', {
+      const response = await axios.post(`${OVH_URL}/register`, {
         username,
         email,
         password,
-      });
+      },{
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
       
       setSuccess(true);
       setError('');

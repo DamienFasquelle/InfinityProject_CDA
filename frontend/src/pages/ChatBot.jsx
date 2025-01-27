@@ -27,7 +27,7 @@ const ChatBot = ({ onGameRecommendations }) => {
   
       try {
         const response = await axios.post(
-          "http://localhost:8000/api/chatbot",
+          "http://127.0.0.1:8000/api/chatbot",
           { message: input },
           {
             headers: {
