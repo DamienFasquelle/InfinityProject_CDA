@@ -69,6 +69,7 @@ const GameCard = ({ game }) => {
           autoPlay
           muted
           src={videoUrl}
+          loading='lazy'
           alt={game.name}
           className="game-card-img"
           style={{ height: '200px', objectFit: 'cover' }}
@@ -78,6 +79,8 @@ const GameCard = ({ game }) => {
           variant="top"
           src={game.background_image || 'https://via.placeholder.com/150'}
           alt={game.name}
+                    loading='lazy'
+
           className="game-card-img"
           style={{ height: '200px', objectFit: 'cover' }}
         />

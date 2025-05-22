@@ -1,15 +1,14 @@
 nelmio_cors:
     defaults:
-        allow_origin: ['%env(CORS_ALLOW_ORIGIN)%']
-
+        allow_credentials: true
+        allow_origin: ['https://cfthbordeaux.com', 'https://infinitygames.ddvportfolio.com', 'https://api.ddvportfolio.com', 'http://localhost:3000', 'http://127.0.0.1:8000']
         allow_headers: ['Content-Type', 'Authorization', 'X-Requested-With']
         allow_methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+        expose_headers: ['Link']
         max_age: 3600
-        allow_credentials: true
     paths:
         '^/api/':
-            allow_origin: ['http://localhost:3000', 'https://infinitygames.ddvportfolio.com','https://api.ddvportfolio.com']
+            allow_origin: ['https://cfthbordeaux.com', 'https://infinitygames.ddvportfolio.com', 'https://api.ddvportfolio.com', 'http://localhost:3000', 'http://127.0.0.1:8000']
             allow_headers: ['Content-Type', 'Authorization', 'X-Requested-With']
             allow_methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
             max_age: 3600
-            allow_credentials: true

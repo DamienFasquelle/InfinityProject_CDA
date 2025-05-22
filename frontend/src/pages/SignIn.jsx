@@ -1,4 +1,3 @@
-import axios from 'axios';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -10,29 +9,41 @@ const SignIn = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const OVH_URL = process.env.REACT_APP_OVH_URL;
-  const APP_URL_LOCAL = process.env.REACT_APP_URL_LOCAL;
+  const API_URL = process.env.REACT_APP_API_URL;
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setError('');
+    setSuccess(false);
+
+    const data = { email, username, password };
+
     try {
-      const response = await axios.post(`${OVH_URL}/register`, {
-        username,
-        email,
-        password,
-      },{
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-      
+      const response = await fetch(`${API_URL}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (errorData && errorData.message) {
+          throw new Error(errorData.message);
+        } else {
+          throw new Error('Erreur lors de l’inscription. Veuillez vérifier les informations.');
+        }
+      }
+
       setSuccess(true);
-      setError('');
       alert('Inscription réussie, veuillez vous connecter !');
       navigate('/login');
     } catch (err) {
-      setError('Erreur lors de l’inscription. Veuillez réessayer.');
+      if (err.name === 'TypeError') {
+        setError('Le serveur ne répond pas. Vérifiez votre connexion.');
+      } else {
+        setError(err.message || 'Une erreur inconnue est survenue.');
+      }
       setSuccess(false);
     }
   };
@@ -42,8 +53,9 @@ const SignIn = () => {
       <h1>Inscription</h1>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {success && <p style={{ color: 'green' }}>Inscription réussie !</p>}
+
       <form onSubmit={handleSubmit}>
-        <label htmlFor="username">Prénom</label>
+        <label htmlFor="username">Nom utilisateur</label>
         <input
           type="text"
           id="username"
@@ -75,6 +87,7 @@ const SignIn = () => {
 
         <button type="submit">S'inscrire</button>
       </form>
+
       <Link to="/login">Déjà inscrit ? Se connecter</Link>
     </div>
   );

@@ -1,85 +1,63 @@
-import React, { useState, useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { AuthContext } from '../providers/AuthProvider';
-import { Row, Col, Form, Button } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { Button, Col, Form, Row } from 'react-bootstrap';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Login = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const { login } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const [error, setError] = useState(null);
 
-  const OVH_URL = process.env.REACT_APP_OVH_URL;
-  const APP_URL_LOCAL = process.env.REACT_APP_URL_LOCAL;
+  const API_URL = process.env.REACT_APP_API_URL;
+
+  const handleLoginSuccess = () => {
+    navigate('/');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    if (!OVH_URL) {
-      console.error('REACT_APP_OVH_URL n\'est pas défini.');
-    }
-    console.log('OVH_URL:', `${OVH_URL}/login_check`);
+    setError(null);
+    const data = { email, password };
 
     try {
-      const response = await axios.post(`${OVH_URL}/api/login_check`, {
-        email,
-        password,
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        withCredentials: true, 
+      const response = await fetch(`${API_URL}/api/login_check`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
       });
-      
-      
-      const token = response.data.token;
 
-      login(token);
-
-      const decodedToken = JSON.parse(atob(token.split('.')[1]));
-      const userRole = decodedToken.roles[0];
-
-      if (userRole === 'ROLE_ADMIN') {
-        navigate('/admin');
-      } else if (userRole === 'ROLE_USER') {
-        navigate('/user');
-      } else {
-        navigate('/');
+      if (!response.ok) {
+        const errorData = await response.json();
+        const message =
+          errorData.message || 'Identifiants incorrects.';
+        throw new Error(message);
       }
 
-      setSuccess('Connexion réussie !');
+      const result = await response.json();
+      localStorage.setItem('token', result.token);
+      handleLoginSuccess();
     } catch (err) {
-      if (err.response) {
-        // Erreur côté serveur
-        setError(err.response.data.message || 'Erreur inconnue sur le serveur.');
-      } else if (err.request) {
-        // Aucune réponse reçue
+      if (err.name === 'TypeError') {
         setError('Le serveur ne répond pas. Vérifiez votre connexion.');
       } else {
-        // Erreur de configuration
-        setError('Une erreur inattendue est survenue.');
+        setError(err.message || 'Erreur inconnue.');
       }
     }
-    
   };
 
   return (
     <div className="form-container">
       <h1>Connexion</h1>
 
-      {success && <p style={{ color: 'green' }}>{success}</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
       <Form onSubmit={handleSubmit}>
         <Row className="mb-3">
-          <Col xs={12} md={12}>
+          <Col xs={12}>
             <Form.Group controlId="email">
               <Form.Label>Email :</Form.Label>
               <Form.Control
@@ -94,7 +72,7 @@ const Login = () => {
           </Col>
         </Row>
 
-        <Row className="mb-3">
+       <Row className="mb-3">
           <Col xs={12} md={12}>
             <Form.Group controlId="password">
               <Form.Label>Mot de passe :</Form.Label>
