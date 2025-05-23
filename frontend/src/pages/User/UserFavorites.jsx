@@ -7,7 +7,7 @@ const UserFavorites = () => {
   const [favoriteGames, setFavoriteGames] = useState([]); 
   const [gameDetails, setGameDetails] = useState([]); 
   const [loading, setLoading] = useState(false); 
-  const OVH_URL = process.env.REACT_APP_OVH_URL;
+  const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const fetchFavoriteGames = async () => {
@@ -18,7 +18,7 @@ const UserFavorites = () => {
       }
 
       try {
-        const response = await fetch(`${OVH_URL}/favorite/list`, {
+        const response = await fetch(`${API_URL}/api/favorite/list`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,

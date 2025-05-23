@@ -1,9 +1,6 @@
 const API_KEY = process.env.REACT_APP_API_KEY;
 const BASE_URL = process.env.REACT_APP_BASE_URL;
 
-console.log("API_KEY", API_KEY);
-console.log("BASE_URL", BASE_URL);
-
 const handleFetch = async (url) => {
   try {
     const response = await fetch(url);
@@ -85,6 +82,11 @@ export const searchGames = async (query) => {
 
 export const fetchStores = async () => {
   const url = `${BASE_URL}/stores?key=${API_KEY}`;
+  return await handleFetch(url);
+};
+
+export const fetchStoresID = async (gameid) => {
+  const url = `${BASE_URL}/games/${gameid}/stores?key=${API_KEY}`;
   return await handleFetch(url);
 };
 

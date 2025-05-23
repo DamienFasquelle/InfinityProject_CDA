@@ -1,229 +1,216 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Form, Button } from "react-bootstrap";
 import { jwtDecode } from "jwt-decode";
+import { AuthContext } from "../providers/AuthProvider";
 
-
-const Comments = ({
-  comments,
-  gameId,
-  isConnected,
-  isAdmin,
-  onCommentAdded,
-  onCommentDeleted,
-  onCommentEdited,
-}) => {
-  const [newComment, setNewComment] = useState("");
-  const [newRating, setNewRating] = useState(1);
+const Comments = ({ comments, gameId, onCommentAdded, onCommentDeleted, onCommentEdited }) => {
+  const { isAuthenticated } = useContext(AuthContext);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isEditing, setIsEditing] = useState(null);
-  const [editedComment, setEditedComment] = useState("");
-  const [editedRating, setEditedRating] = useState(null);
-  const OVH_URL = process.env.REACT_APP_OVH_URL;
 
+  const API_URL = process.env.REACT_APP_API_URL;
+  const token = localStorage.getItem("token");
+  const decodedToken = token ? jwtDecode(token) : null;
+  const userId = decodedToken?.userId;
+  const isAdminUser = decodedToken?.roles?.includes("ROLE_ADMIN");
+
+  const showMessageAndReload = (message, isSuccess = true) => {
+    if (isSuccess) setSuccess(message);
+    else setError(message);
+
+    setTimeout(() => {
+      window.location.reload();
+    }, 1500);
+  };
 
   const handleNewCommentSubmit = async (e) => {
-    const token = localStorage.getItem("token");
     e.preventDefault();
-    if (!token) {
-      setError("Vous devez être connecté pour publier un commentaire.");
-      return;
-    }
-    const decodedToken = jwtDecode(token);
-    const userRoles = decodedToken.roles || [];
-    const isUserRole = userRoles.includes("ROLE_USER");
+    if (!token) return setError("Vous devez être connecté pour publier un commentaire.");
+    if (!decodedToken.roles?.includes("ROLE_USER"))
+      return setError("Vous devez être un utilisateur pour publier un commentaire.");
 
-    if (!isUserRole) {
-      setError("Vous devez être un utilisateur pour publier un commentaire.");
-      return;
-    }
-
-    const commentData = {
-      content: newComment,
-      rating: newRating,
-      gameId,
-    };
+    const form = e.target;
+    const content = form.content.value;
+    const rating = Number(form.rating.value);
 
     try {
-      const response = await fetch(`${OVH_URL}/api/comment`, {
+      const response = await fetch(`${API_URL}/api/comment`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(commentData),
+        body: JSON.stringify({ content, rating, gameId }),
       });
 
       if (response.status === 201) {
-        setNewComment("");
-        setNewRating(1);
-        setSuccess("Commentaire ajouté avec succès.");
-        onCommentAdded(); // Actualiser la liste des commentaires
+        showMessageAndReload("Commentaire ajouté avec succès.");
+      } else {
+        showMessageAndReload("Erreur lors de l'ajout du commentaire.", false);
       }
     } catch (err) {
-      setError("Une erreur s'est produite.");
-      console.error("Erreur de requête :", err);
+      console.error("Erreur lors de l'ajout du commentaire :", err);
+      showMessageAndReload("Erreur serveur lors de l'ajout.", false);
     }
   };
 
   const handleDeleteComment = async (commentId) => {
-    const token = localStorage.getItem("token");
+    if (!token) return;
     try {
-      const response = await fetch(`${OVH_URL}/api/comment/${commentId}`, {
+      const res = await fetch(`${API_URL}/api/comment/${commentId}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      if (response.status === 200) {
-        onCommentDeleted(commentId); // Actualiser la liste des commentaires
+      if (res.ok) {
+        showMessageAndReload("Commentaire supprimé avec succès.");
+      } else {
+        showMessageAndReload("Erreur lors de la suppression du commentaire.", false);
       }
-    } catch (error) {
-      console.error("Erreur lors de la suppression du commentaire", error);
+    } catch (err) {
+      console.error("Erreur de suppression :", err);
+      showMessageAndReload("Erreur serveur.", false);
     }
   };
 
   const handleEditComment = async (commentId) => {
-    const token = localStorage.getItem("token");
+    const form = document.getElementById(`edit-form-${commentId}`);
+    const content = form?.content.value;
+    const rating = Number(form?.rating.value);
+
+    if (!content || !rating) return setError("Remplissez tous les champs.");
+
     try {
-      const response = await fetch(`${OVH_URL}/api/comment/${commentId}`, {
+      const res = await fetch(`${API_URL}/api/comment/${commentId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          content: editedComment,
-          rating: editedRating,
+          content,
+          rating,
           gameId,
         }),
       });
-      if (response.status === 200) {
-        setIsEditing(null);
-        setEditedComment("");
-        setEditedRating(null);
-        onCommentEdited();
+
+      if (res.ok) {
+        showMessageAndReload("Commentaire modifié avec succès.");
+      } else {
+        showMessageAndReload("Erreur lors de la modification.", false);
       }
-    } catch (error) {
-      console.error("Erreur lors de la modification du commentaire", error);
+    } catch (err) {
+      console.error("Erreur de modification :", err);
+      showMessageAndReload("Erreur serveur.", false);
     }
   };
 
-  const startEditing = (commentId, content, rating) => {
+  const startEditing = (commentId) => {
     setIsEditing(commentId);
-    setEditedComment(content);
-    setEditedRating(rating);
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(null);
+    setError("");
+    setSuccess("");
   };
 
   return (
     <div>
       <h2>Commentaires</h2>
+      {error && <div className="alert alert-danger">{error}</div>}
+      {success && <div className="alert alert-success">{success}</div>}
+
       {comments.length > 0 ? (
         <div className="comments-list">
-          {comments.map((comment) => {
-            const token = localStorage.getItem('token');
-            const decodedToken = token ? jwtDecode(token) : null;
-            const userId = decodedToken?.userId;
-            const isAdminUser = decodedToken?.roles?.includes('ROLE_ADMIN');
-            return (
-              <div key={comment.id} className="comment">
-                {isEditing === comment.id ? (
-                  <div>
-                    <textarea
-                      value={editedComment}
-                      onChange={(e) => setEditedComment(e.target.value)}
-                    />
-                    <input
-                      type="number"
-                      min="1"
-                      max="5"
-                      value={editedRating}
-                      onChange={(e) =>
-                        setEditedRating(Number(e.target.value))
-                      }
-                    />
-                    <button
-                      onClick={() => handleEditComment(comment.id)}
-                      className="btn-gradient"
-                    >
-                      Enregistrer
-                    </button>
-                    <button
-                      onClick={() => setIsEditing(null)}
-                      className="btn-danger"
-                    >
-                      Annuler
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    <p>
-                      <strong>{comment.user}</strong> - {comment.created_at}
-                    </p>
-                    <p>{comment.content}</p>
-                    <p>Note: {comment.rating} / 5</p>
-                    {(comment.userId === userId || isAdminUser) && (
-                      <div>
-                        <button
-                          onClick={() =>
-                            startEditing(comment.id, comment.content, comment.rating)
-                          }
-                          className="btn-gradient"
-                        >
-                          Modifier
-                        </button>
-                        <button
-                          onClick={() => handleDeleteComment(comment.id)}
-                          className="btn-danger"
-                        >
-                          Supprimer
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+          {comments.map((comment) => (
+            <div key={comment.id} className="comment mb-3 p-3 rounded text-light bg-dark">
+              {isEditing === comment.id ? (
+                <Form id={`edit-form-${comment.id}`} className="mb-3">
+                  <Form.Control
+                    as="textarea"
+                    name="content"
+                    rows={3}
+                    defaultValue={comment.content}
+                    className="mb-2"
+                    required
+                  />
+                  <Form.Select
+                    name="rating"
+                    defaultValue={comment.rating}
+                    className="mb-2"
+                    required
+                  >
+                    {[1, 2, 3, 4, 5].map((r) => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                  </Form.Select>
+                  <Button variant="success" size="sm" onClick={() => handleEditComment(comment.id)} className="me-2">
+                    Enregistrer
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={cancelEditing}>
+                    Annuler
+                  </Button>
+                </Form>
+              ) : (
+                <>
+                  <p><strong>{comment.user}</strong> - {new Date(comment.created_at).toLocaleString()}</p>
+                  <p>{comment.content}</p>
+                  <p>Note : {comment.rating} / 5</p>
+                  {(comment.userId === userId || isAdminUser) && userId && (
+                    <div>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        className="me-2"
+                        onClick={() => startEditing(comment.id)}
+                      >
+                        Modifier
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleDeleteComment(comment.id)}
+                      >
+                        Supprimer
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          ))}
         </div>
       ) : (
         <p>Aucun commentaire pour ce jeu.</p>
       )}
 
-      {isConnected && !isAdmin && (
-        <section className="my-4">
+      {isAuthenticated && (
+        <section className="mt-4">
           <h3>Ajouter un Commentaire</h3>
-          {error && <div className="alert alert-danger">{error}</div>}
-          {success && <div className="alert alert-success">{success}</div>}
           <Form onSubmit={handleNewCommentSubmit}>
-            <Form.Group controlId="content">
-              <Form.Label>Votre Commentaire</Form.Label>
+            <Form.Group controlId="content" className="mb-3">
+              <Form.Label>Votre commentaire</Form.Label>
               <Form.Control
                 as="textarea"
+                name="content"
                 rows={3}
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
                 required
               />
             </Form.Group>
-
-            <Form.Group controlId="rating">
-              <Form.Label>Note (1 à 5)</Form.Label>
-              <Form.Control
-                as="select"
-                value={newRating}
-                onChange={(e) => setNewRating(Number(e.target.value))}
+            <Form.Group controlId="rating" className="mb-3">
+              <Form.Label>Note</Form.Label>
+              <Form.Select
+                name="rating"
+                defaultValue={1}
                 required
               >
-                {[1, 2, 3, 4, 5].map((rating) => (
-                  <option key={rating} value={rating}>
-                    {rating}
-                  </option>
+                {[1, 2, 3, 4, 5].map((r) => (
+                  <option key={r} value={r}>{r}</option>
                 ))}
-              </Form.Control>
+              </Form.Select>
             </Form.Group>
-
-            <Button type="submit">Soumettre</Button>
+            <Button type="submit" variant="primary">Soumettre</Button>
           </Form>
         </section>
       )}

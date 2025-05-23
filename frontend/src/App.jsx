@@ -17,6 +17,7 @@ import ChatBot from "./pages/ChatBot";
 import { AuthContext } from "./providers/AuthProvider";
 import UserDashboard from "./pages/User/UserDashboard";
 import RecommandationGame from "./pages/RecommandationGame";
+import ScrollToTop from "./components/ScrollToTop";
 
 const App = () => {
   const { isAuthenticated } = useContext(AuthContext);
@@ -38,6 +39,7 @@ const App = () => {
   return (
     <>
       <Header />
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />

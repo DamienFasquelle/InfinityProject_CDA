@@ -1,54 +1,54 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import { AuthContext } from './AuthProvider'; // adapte le chemin
 
 export const FavoritesContext = createContext();
 
 export const FavoritesProvider = ({ children }) => {
   const [favoriteGameIds, setFavoriteGameIds] = useState([]);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const OVH_URL = process.env.REACT_APP_OVH_URL;
-
+  const { isAuthenticated } = useContext(AuthContext); // <-- on écoute l'authentification
+  const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
+    const API_URL = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token); 
-
-    if (token) {
+    if (isAuthenticated && token) {
       const fetchFavorites = async () => {
         try {
-          const response = await fetch(`${OVH_URL}/favorite/list`, {
+          const response = await fetch(`${API_URL}/api/favorite/list`, {
             method: 'GET',
             headers: {
               Authorization: `Bearer ${token}`,
             },
           });
           if (response.ok) {
-              const data = await response.json();
-              setFavoriteGameIds(data);
-            } else {
-                console.error("Erreur lors de la récupération des favoris");
-            }
+            const data = await response.json();
+            setFavoriteGameIds(data);
+          } else {
+            console.error("Erreur lors de la récupération des favoris");
+          }
         } catch (error) {
-            console.error("Erreur:", error);
+          console.error("Erreur:", error);
         }
       };
 
       fetchFavorites();
+    } else {
+      setFavoriteGameIds([]); 
     }
-  }, []);
+  }, [isAuthenticated]); 
 
-  const isFavorite = (gameId) => favoriteGameIds.includes(gameId); 
+  const isFavorite = (gameId) => favoriteGameIds.includes(gameId);
 
   const toggleFavorite = async (gameId) => {
-    if (!isLoggedIn) {
-      console.error("Vous devez être connecté pour modifier les favoris.");
+    if (!isAuthenticated) {
+      console.error("Utilisateur non authentifié");
       return;
     }
-
     const token = localStorage.getItem('token');
     const alreadyFavorite = isFavorite(gameId);
     const url = alreadyFavorite
-      ? `${OVH_URL}/favorite/remove`
-      : `${OVH_URL}/favorite/add`;
+      ? `${API_URL}/api/favorite/remove`
+      : `${API_URL}/api/favorite/add`;
 
     try {
       const response = await fetch(url, {
@@ -57,7 +57,7 @@ export const FavoritesProvider = ({ children }) => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ gameId : gameId }),
+        body: JSON.stringify({ gameId }),
       });
 
       if (response.ok) {
@@ -75,7 +75,7 @@ export const FavoritesProvider = ({ children }) => {
   };
 
   return (
-    <FavoritesContext.Provider value={{ favoriteGameIds, isFavorite, toggleFavorite, isLoggedIn }}>
+    <FavoritesContext.Provider value={{ favoriteGameIds, isFavorite, toggleFavorite, isAuthenticated }}>
       {children}
     </FavoritesContext.Provider>
   );

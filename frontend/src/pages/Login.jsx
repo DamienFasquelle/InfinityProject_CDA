@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { Button, Col, Form, Row } from 'react-bootstrap';
+import { Button, Col, Form, Row, Container, Alert } from 'react-bootstrap';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { AuthContext } from '../providers/AuthProvider';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -10,6 +10,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
+  const { login } = useContext(AuthContext);
 
   const API_URL = process.env.REACT_APP_API_URL;
 
@@ -32,13 +33,13 @@ const Login = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        const message =
-          errorData.message || 'Identifiants incorrects.';
+        const message = errorData.message || 'Identifiants incorrects.';
         throw new Error(message);
       }
 
       const result = await response.json();
-      localStorage.setItem('token', result.token);
+
+      login(result.token);
       handleLoginSuccess();
     } catch (err) {
       if (err.name === 'TypeError') {
@@ -50,65 +51,84 @@ const Login = () => {
   };
 
   return (
-    <div className="form-container">
-      <h1>Connexion</h1>
+    <Container
+      fluid="sm"
+      className="d-flex justify-content-center align-items-center"
+      style={{ minHeight: '80vh' }}
+    >
+      <Row className="w-100 justify-content-center">
+        <Col xs={12} sm={10} md={8} lg={6} xl={5}>
+          <div
+            className="form-container card p-4"
+            style={{ borderRadius: 'var(--border-radius)', boxShadow: 'var(--shadow)' }}
+          >
+            <h2 className="card-title text-center mb-4" style={{ color: 'var(--primary)' }}>
+              Connexion
+            </h2>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+            {error && (
+              <Alert variant="danger" className="text-center">
+                {error}
+              </Alert>
+            )}
 
-      <Form onSubmit={handleSubmit}>
-        <Row className="mb-3">
-          <Col xs={12}>
-            <Form.Group controlId="email">
-              <Form.Label>Email :</Form.Label>
-              <Form.Control
-                type="email"
-                name="email"
-                placeholder="Entrez votre email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </Form.Group>
-          </Col>
-        </Row>
-
-       <Row className="mb-3">
-          <Col xs={12} md={12}>
-            <Form.Group controlId="password">
-              <Form.Label>Mot de passe :</Form.Label>
-              <div className="password-container d-flex">
+            <Form onSubmit={handleSubmit}>
+              <Form.Group controlId="email" className="mb-3 text-white">
+                <Form.Label>Email :</Form.Label>
                 <Form.Control
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  placeholder="Entrez votre mot de passe"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  type="email"
+                  placeholder="Entrez votre email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
-                 <Col xs={2} md={2}>
-                <Button
-                  type="button"
-                  className="toggle-password ms-1"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  variant="outline-secondary"
-                >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
-                </Button>
-                </Col>
-              </div>
-            </Form.Group>
-          </Col>
-        </Row>
+              </Form.Group>
 
-        <Button type="submit" variant="primary">
-          Se connecter
-        </Button>
-      </Form>
+              <Form.Group controlId="password" className="mb-4 text-white">
+                <Form.Label>Mot de passe :</Form.Label>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <Form.Control
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Entrez votre mot de passe"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    style={{ paddingRight: '2.5rem' }}
+                  />
+                  <Button
+                    variant="outline-light"
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    style={{
+                      position: 'absolute',
+                      right: '0.5rem',
+                      border: 'none',
+                      padding: '0.25rem 0.5rem',
+                      height: 'auto',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                    }}
+                    aria-label={showPassword ? "Cacher le mot de passe" : "Afficher le mot de passe"}
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </Button>
+                </div>
+              </Form.Group>
 
-      <div className="auth-links mt-3">
-        <Link to="/signin">Pas encore inscrit ? S'inscrire</Link>
-      </div>
-    </div>
+              <Button type="submit" className="btn-gradient w-100" style={{ fontWeight: 600 }}>
+                Se connecter
+              </Button>
+            </Form>
+
+            <div className="mt-3 text-center" style={{ fontSize: '0.9rem' }}>
+              <Link to="/signin">Pas encore inscrit ? S'inscrire</Link>
+            </div>
+          </div>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

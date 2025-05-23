@@ -1,38 +1,44 @@
-# Rediriger vers la version sans www et en HTTPS
+# Activer mod_rewrite
 <IfModule mod_rewrite.c>
-RewriteEngine On
-RewriteCond %{HTTP_HOST} ^www\.cfthbordeaux\.com [NC]
-RewriteRule ^(.*)$ https://cfthbordeaux.com/$1 [R=301,L]
+  RewriteEngine On
+  RewriteBase /
+
+  # Forcer la redirection HTTP vers HTTPS
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+  # Rediriger www vers non-www
+  RewriteCond %{HTTP_HOST} ^www\.ddvportfolio\.com$ [NC]
+  RewriteRule ^(.*)$ https://infinitygames.ddvportfolio.com/$1 [R=301,L]
+
+  # Rediriger toutes les requêtes vers index.html (pour React Router)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [L]
 </IfModule>
 
-# Gérer les redirections pour React Router
-<IfModule mod_rewrite.c>
-RewriteEngine On
-RewriteBase /
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ /index.html [L]
-</IfModule>
-
-# Gzip Compression
+# Compression Gzip
 <IfModule mod_deflate.c>
-  AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css text/javascript application/javascript application/x-javascript
+  AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css text/javascript application/javascript application/x-javascript application/json application/wasm font/woff2 application/manifest+json
 </IfModule>
 
-# Cache à long terme pour les fichiers statiques
+# Cache à long terme pour fichiers statiques
 <IfModule mod_expires.c>
   ExpiresActive On
   ExpiresByType image/jpg "access plus 1 year"
   ExpiresByType image/jpeg "access plus 1 year"
   ExpiresByType image/gif "access plus 1 year"
   ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
   ExpiresByType text/css "access plus 1 month"
   ExpiresByType application/javascript "access plus 1 month"
   ExpiresByType text/javascript "access plus 1 month"
+  ExpiresByType application/json "access plus 1 month"
 </IfModule>
 
-# Désactiver le cache pour index.html
-<FilesMatch "index\.(php|html)$">
+# Désactiver le cache sur index.html pour éviter les soucis de navigation
+<FilesMatch "index\.html$">
   <IfModule mod_headers.c>
     Header set Cache-Control "no-cache, no-store, must-revalidate"
     Header set Pragma "no-cache"
@@ -40,13 +46,18 @@ RewriteRule ^ /index.html [L]
   </IfModule>
 </FilesMatch>
 
-# Configuration des headers CORS
-<IfModule mod_headers.c>
-    SetEnvIf Origin "http(s)?://(localhost:3000|infinitygames\.ddvportfolio\.com|api\.ddvportfolio\.com)" CORS_ORIGIN=$0
-    Header set Access-Control-Allow-Origin "%{CORS_ORIGIN}e" env=CORS_ORIGIN
-    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
-    Header always set Access-Control-Allow-Credentials "true"
+# Timeout Proxy/FCGI (si besoin)
+<IfModule mod_proxy_fcgi.c>
+    ProxyTimeout 300
+    Timeout 300
 </IfModule>
 
+<IfModule mod_fcgid.c>
+    FcgidIOTimeout 300
+    FcgidBusyTimeout 300
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css text/javascript application/javascript application/x-javascript application/json application/wasm font/woff2 application/manifest+json
+</IfModule>
 

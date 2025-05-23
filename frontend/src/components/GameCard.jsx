@@ -3,15 +3,13 @@ import { Card, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { fetchGameVideos } from '../services/rawgService';
 import { FavoritesContext } from '../providers/FavoritesProvider';
-import { AuthContext } from '../providers/AuthProvider';
 
 
 const GameCard = ({ game }) => {
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [videos, setVideos] = useState([]);
-  const { isFavorite, toggleFavorite, isLoggedIn } = useContext(FavoritesContext); 
-  const { isAdmin } = useContext(AuthContext);
+  const { isFavorite, toggleFavorite, isAuthenticated } = useContext(FavoritesContext); 
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -38,14 +36,6 @@ const GameCard = ({ game }) => {
 
   const handleMouseLeave = () => {
     setIsHovered(false);
-  };
-
-  const handleToggleFavorite = () => {
-    if (!isLoggedIn) {
-      alert("Veuillez vous connecter pour ajouter ou retirer des favoris.");
-      return;
-    }
-    toggleFavorite(game.id);
   };
 
   const videoUrl = videos.length > 0 ? (videos[0].data.max || videos[0].data['480']) : null;
@@ -102,18 +92,19 @@ const GameCard = ({ game }) => {
       </Card.Body>
 
       {/* Cœur pour les favoris */}
-      {isLoggedIn && !isAdmin && (
+      {isAuthenticated && (
         <div
           className={`favorite-heart ${isFavorite(game.id) ? 'filled' : ''}`}
-          onClick={handleToggleFavorite}
           style={{
-            color: isFavorite(game.id) ? 'red' : 'gray', // Cœur rouge si favori, sinon gris
-            fontSize: '24px', // Taille du cœur
-            cursor: 'pointer', // Indiquer que c'est cliquable
-            position: 'absolute', // Position absolue pour placer correctement
+            color: isFavorite(game.id) ? 'red' : 'gray', 
+            fontSize: '24px', 
+            cursor: 'pointer',
+            position: 'absolute',
             top: '10px',
             right: '10px',
+            
           }}
+          onClick={() => toggleFavorite(game.id)}
         >
           {isFavorite(game.id) ? '❤️' : '🤍'}
         </div>

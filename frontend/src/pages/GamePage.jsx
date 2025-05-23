@@ -1,281 +1,295 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { fetchGameDetails, fetchGameScreenshots, fetchDevelopers, fetchCreators, fetchStores, fetchGameVideos, fetchSimilarGames, fetchGameSeries } from "../services/rawgService";
-import { Button, Col, Form, Row } from "react-bootstrap";
-import GameCard from "../components/GameCard";
-import { AuthContext } from "../providers/AuthProvider";
+import { Row, Col, Card, Badge, ListGroup, Image } from "react-bootstrap";
+import {
+  fetchGameDetails,
+  fetchGameScreenshots,
+  fetchGameVideos,
+  fetchDevelopers,
+  fetchCreators,
+  fetchStores,
+  fetchStoresID,
+} from "../services/rawgService";
 import Comments from "./Comments";
+import { AuthContext } from "../providers/AuthProvider";
 
 const GamePage = () => {
   const { id } = useParams();
+  const { isConnected, isAdmin } = useContext(AuthContext);
+
   const [gameDetails, setGameDetails] = useState(null);
   const [screenshots, setScreenshots] = useState([]);
+  const [videos, setVideos] = useState([]);
   const [developers, setDevelopers] = useState([]);
   const [creators, setCreators] = useState([]);
   const [stores, setStores] = useState([]);
-  const [videos, setVideos] = useState([]);
-  const [similarGames, setSimilarGames] = useState([]);
-  const [gamesSeries, setGamesSeries] = useState([]);
+  const [storesID, setStoresID] = useState([]);
   const [comments, setComments] = useState([]);
-  const [isConnected, setIsConnected] = useState(false);
-  const { isAdmin } = useContext(AuthContext);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      setIsConnected(true);
-    } else {
-      setIsConnected(false);
-    }
-
-    const fetchDetails = async () => {
+    const fetchData = async () => {
       try {
-        const data = await fetchGameDetails(id);
-        setGameDetails(data);
-        const screenshotData = await fetchGameScreenshots(id);
-        setScreenshots(screenshotData.results || []);
-        const developersData = await fetchDevelopers();
-        setDevelopers(developersData.results || []);
-        const creatorsData = await fetchCreators();
-        setCreators(creatorsData.results || []);
-        const storesData = await fetchStores();
-        setStores(storesData.results || []);
-        const videoData = await fetchGameVideos(id);
-        setVideos(videoData.results || []);
-        const gameSeriesData = await fetchGameSeries(id);
-        setGamesSeries(gameSeriesData.results || []);
-        if (data.genres && data.tags) {
-          const similarGamesData = await fetchSimilarGames(id, data.genres, data.tags);
-          setSimilarGames(similarGamesData);
-        }
-        const commentResponse = await fetch(`http://127.0.0.1:8000/comments/${id}`);
-        const commentData = await commentResponse.json();
+        const [
+          gameRes,
+          screenRes,
+          videoRes,
+          storesIDRes, 
+          devRes,
+          creatorRes,
+          storeRes,
+        ] = await Promise.all([
+          fetchGameDetails(id),
+          fetchGameScreenshots(id),
+          fetchGameVideos(id),
+          fetchStoresID(id),
+          fetchDevelopers(),
+          fetchCreators(),
+          fetchStores(),
+        ]);
+        const API_URL = process.env.REACT_APP_API_URL;
+        setGameDetails(gameRes);
+        setScreenshots(screenRes?.results || []);
+        setVideos(videoRes?.results || []);
+        setStoresID(storesIDRes ?.results || storesIDRes  || []);
+        setDevelopers(devRes?.results || devRes || []);
+        setCreators(creatorRes?.results || creatorRes || []);
+        setStores(storeRes?.results || storeRes || []);
+        const response = await fetch(`${API_URL}/comments/${id}`);
+        const commentData = await response.json();
         setComments(commentData);
       } catch (error) {
         console.error("Erreur lors du chargement des données du jeu", error);
       }
     };
 
-    fetchDetails();
+    fetchData();
   }, [id]);
 
-  const handleCommentAdded = () => {
-    // Recharger ou mettre à jour la liste des commentaires après ajout
-    fetch(`http://127.0.0.1:8000/comments/${id}`)
-      .then(response => response.json())
-      .then(data => setComments(data));
+  const handleCommentAdded = (newComment) => {
+    setComments((prev) => [...prev, newComment]);
   };
-
   const handleCommentDeleted = (commentId) => {
-    // Filtrer le commentaire supprimé
-    setComments(comments.filter(comment => comment.id !== commentId));
+    setComments((prev) => prev.filter((c) => c._id !== commentId));
   };
-
-  const handleCommentEdited = () => {
-    // Recharger ou mettre à jour la liste des commentaires après modification
-    fetch(`http://127.0.0.1:8000/comments/${id}`)
-      .then(response => response.json())
-      .then(data => setComments(data));
+  const handleCommentEdited = (updatedComment) => {
+    setComments((prev) =>
+      prev.map((c) => (c._id === updatedComment._id ? updatedComment : c))
+    );
   };
 
   if (!gameDetails)
-    return <div className="game-page-container">Chargement...</div>;
+    return <div className="text-white text-center p-5">Chargement...</div>;
+
+  const storeAccessList = storesID.length > 0 && stores.length > 0
+  ? storesID.map(storeIDItem => {
+      const storeInfo = stores.find(s => s.id === storeIDItem.store_id);
+      return storeInfo
+        ? {
+            ...storeInfo,
+            url: storeIDItem.url,
+          }
+        : null;
+    }).filter(Boolean)
+  : [];
 
   return (
-    <div className="game-page-container">
-       <div
-        className="game-header"
+    <div className="game-page-container py-5 bg-dark text-light">
+      {/* HEADER */}
+      <header
+        className="game-header text-center text-white p-4 mb-5 rounded"
         style={{
           backgroundImage: `url(${gameDetails.background_image})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          minHeight: "250px",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          boxShadow: "0 0 15px rgba(0,0,0,0.8)",
         }}
       >
-        <div className="game-title">
-          <h1>{gameDetails.name}</h1>
-          <p>{gameDetails.released || "Non spécifié"}</p>
-        </div>
-      </div>
+        <h1 className="display-4 fw-bold text-shadow">{gameDetails.name}</h1>
+        <p className="lead">{gameDetails.released || "Non spécifié"}</p>
+      </header>
 
-      <div className="game-content">
-        <div className="game-info">
-          {/* Description */}
-          <section className="my-4">
-            <h2>Description</h2>
-            <p>{gameDetails.description_raw || "Non spécifié"}</p>
-          </section>
+      {/* MAIN CONTENT */}
+      <main className="container">
+        <Row>
+          {/* COL GAUCHE */}
+          <Col lg={6} className="pe-lg-4">
+            {/* Description */}
+            <Card text="light" className="mb-4 shadow">
+              <Card.Header className="fw-bold fs-4 text-info">Description</Card.Header>
+              <Card.Body>
+                <Card.Text style={{ whiteSpace: "pre-line" }}>
+                  {gameDetails.description_raw}
+                </Card.Text>
+              </Card.Body>
+            </Card>
 
-          <section className="my-4">
-            <h2>Jeux Similaires par Nom</h2>
-            {gamesSeries.length > 0 ? (
-              <div className="similar-name-games">
-                <Row className="justify-content-center">
-                  {gamesSeries.map((game) => (
-                    <Col key={game.id} md={4} sm={6} lg={3} className="mb-4">
-                      <GameCard game={game} />
-                    </Col>
+            {/* Genres */}
+            <Card text="light" className="mb-4 shadow">
+              <Card.Header className="fw-bold fs-5 text-info">Genres</Card.Header>
+              <Card.Body>
+                {gameDetails.genres.length === 0 && <p>Aucun genre disponible</p>}
+                <div className="d-flex flex-wrap gap-2">
+                  {gameDetails.genres.map((genre) => (
+                    <Badge key={genre.id} bg="primary" pill>
+                      {genre.name}
+                    </Badge>
                   ))}
-                </Row>
-              </div>
-            ) : (
-              <p>Aucun jeu similaire trouvé par nom.</p>
-            )}
-          </section>
+                </div>
+              </Card.Body>
+            </Card>
 
-          {/* Genres */}
-          <section className="my-4">
-            <h2>Genres</h2>
-            {gameDetails.genres && gameDetails.genres.length > 0 ? (
-              <div className="genres">
-                {gameDetails.genres.map((genre) => (
-                  <span key={genre.id} className="genre">
-                    {genre.name}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p>Non spécifié</p>
-            )}
-          </section>
-
-          {/* Tags */}
-          <section className="my-4">
-            <h2>Tags</h2>
-            {gameDetails.tags && gameDetails.tags.length > 0 ? (
-              <div className="tags">
-                {gameDetails.tags.map((tag) => (
-                  <span key={tag.id} className="tag">
-                    {tag.name}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p>Non spécifié</p>
-            )}
-          </section>
-
-          {/* Développeurs, Créateurs et Magasins */}
-          <section className="my-4">
-            <Row>
-              {/* Développeurs */}
-              <Col md={4}>
-                <h2>Développeurs</h2>
-                {developers.length > 0 ? (
-                  <ul>
-                    {developers.map((dev) => (
-                      <li key={dev.id}>{dev.name}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>Non spécifié</p>
-                )}
-              </Col>
-
-              {/* Créateurs */}
-              <Col md={4}>
-                <h2>Créateurs</h2>
-                {creators.length > 0 ? (
-                  <ul>
-                    {creators.map((creator) => (
-                      <li key={creator.id}>{creator.name}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>Non spécifié</p>
-                )}
-              </Col>
-
-              {/* Magasins */}
-              <Col md={4}>
-                <h2>Magasins</h2>
-                {stores.length > 0 ? (
-                  <ul>
-                    {stores.map((store) => (
-                      <li key={store.id}>
-                        <a
-                          href={store.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {store.name}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>Non spécifié</p>
-                )}
-              </Col>
-            </Row>
-          </section>
-
-          {/* Captures d'écran */}
-          <section>
-            <h2>Captures d'écran</h2>
-            {screenshots.length > 0 ? (
-              <div className="game-screenshots">
-                <Row>
-                  {screenshots.map((screenshot, index) => (
-                    <Col key={index} sm={6} md={4} lg={3} className="mb-4">
-                      <img
-                        src={screenshot.image}
-                        alt={`Screenshot ${index + 1}`}
-                        className="screenshot img-fluid"
-                      />
-                    </Col>
+            {/* Tags */}
+            <Card text="light" className="mb-4 shadow">
+              <Card.Header className="fw-bold fs-5 text-info">Tags</Card.Header>
+              <Card.Body>
+                {gameDetails.tags.length === 0 && <p>Aucun tag disponible</p>}
+                <div className="d-flex flex-wrap gap-2">
+                  {gameDetails.tags.map((tag) => (
+                    <Badge key={tag.id} pill>
+                      {tag.name}
+                    </Badge>
                   ))}
-                </Row>
-              </div>
-            ) : (
-              <p>Non spécifié</p>
-            )}
-          </section>
+                </div>
+              </Card.Body>
+            </Card>
+             {/* Comments */}
+            <Card text="light" className="shadow">
+              <Card.Header className="fw-bold fs-5 text-info">Commentaires</Card.Header>
+              <Card.Body>
+                <Comments
+                  comments={comments}
+                  gameId={id}
+                  isConnected={isConnected}
+                  isAdmin={isAdmin}
+                  onCommentAdded={handleCommentAdded}
+                  onCommentDeleted={handleCommentDeleted}
+                  onCommentEdited={handleCommentEdited}
+                />
+              </Card.Body>
+            </Card>
+          </Col>
 
-          {/* Vidéos */}
-          <section>
-            <h2>Vidéos</h2>
-            {videos.length > 0 ? (
-              <div className="game-videos">
+          {/* COL DROITE */}
+          <Col lg={6} className="ps-lg-4">
+            {/* Devs, Créateurs, Magasins */}
+            <Card text="light" className="mb-4 shadow">
+              <Card.Header className="fw-bold fs-5 text-info">Infos complémentaires</Card.Header>
+              <Card.Body>
                 <Row>
-                  {videos.map((video, index) => {
+                 <Col sm={12} md={4}>
+                    <h6 className="text-info">Boutique</h6>
+                    <ListGroup variant="flush" className="text-light small">
+                      {storeAccessList.length === 0 ? (
+                        <p>Le jeu n'est pas disponible</p>
+                      ) : (
+                        storeAccessList.map(store => (
+                          <ListGroup.Item
+                            key={store.id}
+                            className="bg-transparent text-light p-1 border-0 d-flex align-items-center"
+                          >
+                            {store.image_background && (
+                              <Image
+                                src={store.image_background}
+                                alt={store.name}
+                                rounded
+                                style={{ width: "40px", height: "40px", objectFit: "cover", marginRight: "10px" }}
+                              />
+                            )}
+                            <a
+                              href={store.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-decoration-none text-info"
+                            >
+                              {store.name}
+                            </a>
+                          </ListGroup.Item>
+                        ))
+                      )}
+                    </ListGroup>
+                  </Col>   
+                  <Col sm={12} md={4} className="mb-3 mb-md-0">
+                    <h6 className="text-info">Développeurs</h6>
+                    <ListGroup variant="flush" className="text-light small">
+                      {developers.length === 0 ? <p>Aucun développeur trouvé</p> : 
+                      developers.map((dev) => (
+                        <ListGroup.Item key={dev.id} className="bg-transparent text-light p-1 border-0">
+                          {dev.name}
+                        </ListGroup.Item>
+                      ))}
+                    </ListGroup>
+                  </Col>
+                  <Col sm={12} md={4} className="mb-3 mb-md-0">
+                    <h6 className="text-info">Créateurs</h6>
+                    <ListGroup variant="flush" className="text-light small">
+                      {creators.length === 0 ? <p>Aucun créateur trouvé</p> : 
+                      creators.map((creator) => (
+                        <ListGroup.Item key={creator.id} className="bg-transparent text-light p-1 border-0">
+                          {creator.name}
+                        </ListGroup.Item>
+                      ))}
+                    </ListGroup>
+                  </Col>
+                                
+                </Row>
+              </Card.Body>
+            </Card>
+
+            {/* Screenshots */}
+            <Card text="light" className="mb-4 shadow">
+              <Card.Header className="fw-bold fs-5 text-info">Captures d'écran</Card.Header>
+              <Card.Body>
+                {screenshots.length === 0 ? (
+                  <p>Aucune capture disponible</p>
+                ) : (
+                  <Row>
+                    {screenshots.map((shot, i) => (
+                      <Col key={i} xs={6} className="mb-3">
+                        <img
+                          src={shot.image}
+                          alt={`Screenshot ${i + 1}`}
+                          className="img-fluid rounded shadow-sm"
+                        />
+                      </Col>
+                    ))}
+                  </Row>
+                )}
+              </Card.Body>
+            </Card>
+
+            {/* Vidéos */}
+            <Card text="light" className="mb-4 shadow">
+              <Card.Header className="fw-bold fs-5 text-info">Vidéos</Card.Header>
+              <Card.Body>
+                {videos.length === 0 ? (
+                  <p>Aucune vidéo disponible</p>
+                ) : (
+                  videos.map((video, i) => {
                     const videoUrl = video.data.max || video.data["480"];
                     return (
-                      <Col
-                        key={index}
-                        sm={6}
-                        md={4}
-                        lg={3}
-                        className="mb-4"
+                      <video
+                        key={i}
+                        controls
+                        width="100%"
+                        className="rounded shadow mb-3"
                       >
-                        {videoUrl ? (
-                          <div className="video">
-                            <h3>{video.name}</h3>
-                            <video width="100%" height="auto" controls>
-                              <source src={videoUrl} type="video/mp4" />
-                              Votre navigateur ne supporte pas la lecture de cette vidéo.
-                            </video>
-                          </div>
-                        ) : (
-                          <p>La vidéo n'est pas disponible.</p>
-                        )}
-                      </Col>
+                        <source src={videoUrl} type="video/mp4" />
+                        Votre navigateur ne supporte pas la vidéo.
+                      </video>
                     );
-                  })}
-                </Row>
-              </div>
-            ) : (
-              <p>Aucune vidéo disponible.</p>
-            )}
-          </section>
-      <Comments
-        comments={comments}
-        gameId={id}
-        isConnected={isConnected}
-        isAdmin={isAdmin}
-        onCommentAdded={handleCommentAdded}
-        onCommentDeleted={handleCommentDeleted}
-        onCommentEdited={handleCommentEdited}
-      />
-      </div>
-      </div>
+                  })
+                )}
+              </Card.Body>
+            </Card>
+
+           
+          </Col>
+        </Row>
+      </main>
     </div>
   );
 };

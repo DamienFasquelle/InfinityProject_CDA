@@ -1,50 +1,68 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isUser, setIsUser] = useState(false);
-  const [userInfo, setUserInfo] = useState(null);
+  const [authState, setAuthState] = useState({
+    isAuthenticated: false,
+    isAdmin: false,
+    isUser: false,
+    userInfo: null,
+  });
+
   const navigate = useNavigate();
 
+  // Décode un token JWT et renvoie les rôles + infos
+  const decodeToken = (token) => {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const roles = payload.roles || [];
+      return {
+        isAuthenticated: true,
+        isAdmin: roles.includes('ROLE_ADMIN'),
+        isUser: roles.includes('ROLE_USER'),
+        userInfo: payload,
+      };
+    } catch (err) {
+      console.error("Erreur de décodage du token :", err);
+      return {
+        isAuthenticated: false,
+        isAdmin: false,
+        isUser: false,
+        userInfo: null,
+      };
+    }
+  };
+
+  const login = useCallback((token) => {
+    localStorage.setItem('token', token);
+    const decoded = decodeToken(token);
+    setAuthState(decoded);
+  }, []);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('token');
+    setAuthState({
+      isAuthenticated: false,
+      isAdmin: false,
+      isUser: false,
+      userInfo: null,
+    });
+    navigate('/login');
+  }, [navigate]);
+
+  // Vérifie le token à chaque chargement / actualisation
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      setIsAuthenticated(true);
-      const decodedToken = JSON.parse(atob(token.split('.')[1]));
-      setUserInfo(decodedToken);
-      const userRoles = decodedToken.roles || [];
-      setIsAdmin(userRoles.includes('ROLE_ADMIN'));
-      setIsUser(userRoles.includes('ROLE_USER'));
-    } else {
-      setIsAuthenticated(false);
+      const decoded = decodeToken(token);
+      setAuthState(decoded);
     }
   }, []);
 
-  const login = (token) => {
-    localStorage.setItem('token', token);
-    setIsAuthenticated(true);
-    const decodedToken = JSON.parse(atob(token.split('.')[1]));
-    setUserInfo(decodedToken);
-    const userRoles = decodedToken.roles || [];
-    setIsUser(userRoles.includes('ROLE_USER'));
-    setIsAdmin(userRoles.includes('ROLE_ADMIN'));
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
-    setIsAdmin(false);
-    setUserInfo(null);
-    setIsUser(false);
-    navigate('/login');
-  };
-
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isAdmin, isUser, userInfo, login, logout }}>
+    <AuthContext.Provider value={{ ...authState, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

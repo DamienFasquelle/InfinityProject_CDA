@@ -38,7 +38,16 @@ class CommentController extends AbstractController
         $entityManager->persist($comment);   
         $entityManager->flush(); 
 
-        return $this->json(['message' => 'Commentaire créé avec succès'], 201);
+        return $this->json([
+    'id' => $comment->getId(),
+    'content' => $comment->getContent(),
+    'rating' => $comment->getRating(),
+    'created_at' => $comment->getCreatedAt()->format('Y-m-d H:i:s'),
+   'userId' => $comment->getIdUser()->getId(),
+    'user' => $comment->getIdUser()->getUsername(),
+    'gameId' => $data['gameId'],
+], 201);
+
     }
 
     #[Route('/api/comment/{id}', name: 'update_comment', methods: ['PUT'])]
@@ -67,7 +76,17 @@ class CommentController extends AbstractController
 
         $entityManager->flush();  
 
-        return $this->json(['message' => 'Commentaire mis à jour avec succès']);
+       return $this->json([
+    'id' => $comment->getId(),
+    'content' => $comment->getContent(),
+    'rating' => $comment->getRating(),
+    'created_at' => $comment->getCreatedAt()->format('Y-m-d H:i:s'),
+    'updated_at' => $comment->getUpdatedAt()->format('Y-m-d H:i:s'),
+    'userId' => $comment->getIdUser()->getId(),
+    'user' => $comment->getIdUser()->getUsername(),
+    'gameId' => $comment->getIdGames(),
+]);
+
     }
 
     #[Route('/api/comment/{id}', name: 'delete_comment', methods: ['DELETE'])]
@@ -90,27 +109,29 @@ class CommentController extends AbstractController
     }
 
     #[Route('/comments/{gameId}', name: 'get_comments_by_game', methods: ['GET'])]
-    public function getCommentsByGame(int $gameId, CommentRepository $commentRepository): JsonResponse
-    {
-        $comments = $commentRepository->findBy(['idGames' => $gameId]);
+public function getCommentsByGame(int $gameId, CommentRepository $commentRepository): JsonResponse
+{
+    $comments = $commentRepository->findBy(['idGames' => $gameId]);
 
-        if (!$comments) {
-            return $this->json(['message' => 'Aucun commentaire trouvé pour ce jeu.'], 404);
-        }
-
-        $commentsData = array_map(function ($comment) {
-            return [
-                'id' => $comment->getId(),
-                'content' => $comment->getContent(),
-                'rating' => $comment->getRating(),
-                'created_at' => $comment->getCreatedAt()->format('Y-m-d H:i:s'),
-                'userId' => $comment->getIdUser()->getId(),
-                'user' => $comment->getIdUser()->getUsername(),             
-            ];
-        }, $comments);
-
-        return $this->json($commentsData);
+    // Si aucun commentaire trouvé, on retourne un tableau vide (et pas une erreur 404)
+    if (!$comments) {
+        return $this->json([]);  // tableau vide
     }
+
+    $commentsData = array_map(function ($comment) {
+        return [
+            'id' => $comment->getId(),
+            'content' => $comment->getContent(),
+            'rating' => $comment->getRating(),
+            'created_at' => $comment->getCreatedAt()->format('Y-m-d H:i:s'),
+            'userId' => $comment->getIdUser()->getId(),
+            'user' => $comment->getIdUser()->getUsername(),
+        ];
+    }, $comments);
+
+    return $this->json($commentsData);
+}
+
 
     #[Route('/api/comments', name: 'get_all_comments', methods: ['GET'])]
     public function getAllComments(CommentRepository $commentRepository): JsonResponse
