@@ -9,9 +9,12 @@ import {
   fetchCreators,
   fetchStores,
   fetchStoresID,
+  fetchGameSeries
 } from "../services/rawgService";
 import Comments from "./Comments";
 import { AuthContext } from "../providers/AuthProvider";
+import GameCard from "../components/GameCard";
+
 
 const GamePage = () => {
   const { id } = useParams();
@@ -22,6 +25,7 @@ const GamePage = () => {
   const [videos, setVideos] = useState([]);
   const [developers, setDevelopers] = useState([]);
   const [creators, setCreators] = useState([]);
+  const [gameSeries, setGameSeries] = useState([]);
   const [stores, setStores] = useState([]);
   const [storesID, setStoresID] = useState([]);
   const [comments, setComments] = useState([]);
@@ -33,10 +37,12 @@ const GamePage = () => {
           gameRes,
           screenRes,
           videoRes,
-          storesIDRes, 
+          storesIDRes,
           devRes,
           creatorRes,
           storeRes,
+          seriesRes, 
+          
         ] = await Promise.all([
           fetchGameDetails(id),
           fetchGameScreenshots(id),
@@ -45,15 +51,17 @@ const GamePage = () => {
           fetchDevelopers(),
           fetchCreators(),
           fetchStores(),
+          fetchGameSeries(id),
         ]);
         const API_URL = process.env.REACT_APP_API_URL;
         setGameDetails(gameRes);
         setScreenshots(screenRes?.results || []);
         setVideos(videoRes?.results || []);
-        setStoresID(storesIDRes ?.results || storesIDRes  || []);
+        setStoresID(storesIDRes?.results || storesIDRes  || []);
         setDevelopers(devRes?.results || devRes || []);
         setCreators(creatorRes?.results || creatorRes || []);
         setStores(storeRes?.results || storeRes || []);
+        setGameSeries(seriesRes?.results || []);
         const response = await fetch(`${API_URL}/comments/${id}`);
         const commentData = await response.json();
         setComments(commentData);
@@ -156,6 +164,20 @@ const GamePage = () => {
                 </div>
               </Card.Body>
             </Card>
+            {/* Jeux similaires */}
+              <Card text="light" className="mb-4 shadow">
+                <Card.Header className="fw-bold fs-5 text-info">Jeux similaires</Card.Header>
+                <Card.Body>
+                   {gameSeries.length === 0 && <p>Aucun jeux similaires disponibles</p>}
+                  <Row>
+                    {gameSeries.map((game) => (
+                    <Col key={game.id} md={4} sm={6} lg={3} className="mb-4">
+                      <GameCard game={game} />
+                    </Col>
+                  ))}
+                  </Row>
+                </Card.Body>
+              </Card>
              {/* Comments */}
             <Card text="light" className="shadow">
               <Card.Header className="fw-bold fs-5 text-info">Commentaires</Card.Header>

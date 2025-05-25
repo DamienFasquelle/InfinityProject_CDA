@@ -7,9 +7,9 @@ const UserFavorites = () => {
   const [favoriteGames, setFavoriteGames] = useState([]); 
   const [gameDetails, setGameDetails] = useState([]); 
   const [loading, setLoading] = useState(false); 
-  const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
+    const API_URL = process.env.REACT_APP_API_URL;
     const fetchFavoriteGames = async () => {
       const token = localStorage.getItem('token');
       if (!token) {

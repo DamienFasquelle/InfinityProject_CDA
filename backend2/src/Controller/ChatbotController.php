@@ -25,7 +25,8 @@ public function interact(Request $request): JsonResponse
 
     $chatbotResponse = $this->chatbotService->getChatbotResponse($userMessage);
 
-    return new JsonResponse($chatbotResponse);
+    return new JsonResponse(['message' => $chatbotResponse]);
+
 }
 
 }
