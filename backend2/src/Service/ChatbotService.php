@@ -21,39 +21,17 @@ class ChatbotService
     }
 
     /**
-     * Vérifie si le message utilisateur est une demande de recommandation.
+     * Détermine si une réponse contient une recommandation.
      */
-    private function isRecommendationRequest(string $message): bool
+    private function isRecommendation(string $content): bool
     {
-        $keywords = ['jeux', 'recommande', 'suggestion', 'jeu vidéo', 'quel jeu'];
-        foreach ($keywords as $keyword) {
-            if (stripos($message, $keyword) !== false) {
-                return true;
-            }
-        }
-        return false;
+        return stripos($content, 'Ces jeux sont disponibles') !== false;
     }
 
     /**
-     * Point d'entrée principal : retourne une réponse à afficher au client.
+     * Génère une réponse complète du chatbot.
      */
     public function getChatbotResponse(string $userMessage): string
-    {
-        error_log('➡️ URL utilisée : ' . $this->chatGptApiUrl);
-
-        $openAiResponse = $this->getOpenAiResponse($userMessage);
-
-        if ($this->isRecommendationRequest($userMessage)) {
-            $openAiResponse .= "\n\n🔍 Pour explorer ces jeux, utilisez la barre de recherche ou visitez la section *Jeux recommandés*.";
-        }
-
-        return $openAiResponse;
-    }
-
-    /**
-     * Envoie le message à l'API OpenAI et traite la réponse.
-     */
-    private function getOpenAiResponse(string $message): string
     {
         try {
             $response = $this->httpClient->request('POST', $this->chatGptApiUrl, [
@@ -66,36 +44,46 @@ class ChatbotService
                     'messages' => [
                         [
                             'role' => 'system',
-                            'content' => 'Tu es un assistant qui aide les utilisateurs à trouver des jeux vidéo similaires. Réponds sous forme de tableau JSON : [{"title": "Jeu 1"}, {"title": "Jeu 2"}].'
+                            'content' => <<<EOT
+Tu es un assistant expert en jeux vidéo. Tu aides les utilisateurs à trouver des jeux qui leur correspondent parfaitement.
+
+Commence par leur poser des questions pour mieux cerner leurs goûts (type de jeu, plateforme, ambiance, solo/multi...). Sois naturel et sympathique.
+
+Quand tu as assez d'informations, propose entre 3 et 5 jeux. Pour chaque jeu, donne :
+- Le nom
+- Une brève description
+- La plateforme
+
+Termine toujours ta recommandation par : 
+🔍 Ces jeux sont disponibles dans la section *Jeux recommandés* sur notre site.
+
+Si l'utilisateur ne parle pas de jeux, continue la conversation normalement.
+EOT
                         ],
                         [
                             'role' => 'user',
-                            'content' => $message
+                            'content' => $userMessage
                         ],
                     ],
-                    'max_tokens' => 150,
-                    'temperature' => 0.7,
+                    'temperature' => 0.8,
+                    'max_tokens' => 600,
                 ],
             ]);
 
             $data = $response->toArray();
-
             $content = $data['choices'][0]['message']['content'] ?? '';
-            $games = json_decode($content, true);
 
-            if (is_array($games) && !empty($games)) {
-                $titles = array_map(fn($g) => $g['title'] ?? 'Titre inconnu', $games);
-                return "🎮 Je vous recommande les jeux suivants : " . implode(", ", $titles) . ".";
-            }
+            // Ajoute une trace en console Symfony
+            error_log('🧠 Réponse OpenAI : ' . $content);
 
-            return "🤖 Je suis un chatbot conçu pour vous aider à trouver des jeux vidéo. Essayez une autre question liée aux jeux !";
+            return $content;
 
         } catch (\Exception $e) {
             if ($e->getCode() === 429) {
-                return "🚫 Trop de requêtes envoyées. Veuillez patienter avant de réessayer.";
+                return "🚫 Trop de requêtes envoyées. Veuillez patienter un moment.";
             }
 
-            return "❌ Une erreur est survenue lors de la requête à OpenAI : " . $e->getMessage();
+            return "❌ Une erreur est survenue avec OpenAI : " . $e->getMessage();
         }
     }
 }

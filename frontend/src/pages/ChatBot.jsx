@@ -23,26 +23,21 @@ const ChatBot = ({ onGameRecommendations }) => {
   if (!input.trim()) return;
 
   const extractGameTitles = (responseText) => {
-    const stopPhrase = "je vous invite à vous diriger sur la page Jeux recommandés";
-    const cleanedText = responseText.split(stopPhrase)[0] || responseText;
+  const lines = responseText.split("\n");
 
-    const titleSection = cleanedText.replace(/Je vous recommande les jeux suivants ?:?/i, "").trim();
+  const gameLines = lines.filter((line) =>
+    line.match(/^(\d+\.|\-|\*|•)\s+\*\*(.+?)\*\*/)
+  );
 
-    let parts = titleSection.split(",");
+  const games = gameLines.map((line) => {
+    const match = line.match(/\*\*(.+?)\*\*/);
+    return match ? { title: match[1].trim() } : null;
+  }).filter(Boolean);
 
-    const cleanedTitles = parts
-      .map((title) => {
-        let t = title.trim().replace(/^[^\w\d]+/, "");
-        t = t.split(/\.\s*\n/)[0].trim();
+  return games;
+};
 
-        if (t.split(" ").length > 6) return null;
 
-        return t;
-      })
-      .filter((t) => t && t.length > 0);
-
-    return cleanedTitles.map((title) => ({ title }));
-  };
 
   const updatedMessages = [...messages, { role: "user", content: input }];
   setMessages(updatedMessages);
@@ -62,7 +57,7 @@ const ChatBot = ({ onGameRecommendations }) => {
     const data = await response.json();
     const botResponse = data.message;
 
-    const isRecommendation = botResponse.includes("Je vous recommande les jeux suivants :");
+    const isRecommendation = botResponse.includes("Ces jeux sont disponibles dans la section *Jeux recommandés*");
     const newBotMessage = { role: "bot", content: botResponse };
 
     setMessages((prev) => [...prev, newBotMessage]);

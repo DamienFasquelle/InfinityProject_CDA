@@ -117,7 +117,6 @@ const Comments = ({ comments, gameId, onCommentAdded, onCommentDeleted, onCommen
 
   return (
     <div>
-      <h2>Commentaires</h2>
       {error && <div className="alert alert-danger">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
 
