@@ -118,29 +118,36 @@ class UserController extends AbstractController
     }
 
     #[Route('/api/users', name: 'create_user', methods: ['POST'])]
-    public function createUser(Request $request, EntityManagerInterface $entityManager): JsonResponse
-    {
-        if (!$this->isGranted('ROLE_ADMIN')) {
-            throw new AccessDeniedException('Accès interdit, vous devez être administrateur.');
-        }
-
-        $data = json_decode($request->getContent(), true);
-
-        if (empty($data['username']) || empty($data['email']) || empty($data['password'])) {
-            return $this->json(['message' => 'Les données sont incomplètes.'], 400);
-        }
-
-        $user = new User();
-        $user->setUsername($data['username']);
-        $user->setEmail($data['email']);
-        $user->setPassword(password_hash($data['password'], PASSWORD_BCRYPT));
-        $user->setRoles(['ROLE_USER']); 
-
-        $entityManager->persist($user);
-        $entityManager->flush();
-
-        return $this->json(['message' => 'Utilisateur créé avec succès.'], 201);
+public function createUser(Request $request, EntityManagerInterface $entityManager): JsonResponse
+{
+    if (!$this->isGranted('ROLE_ADMIN')) {
+        throw new AccessDeniedException('Accès interdit, vous devez être administrateur.');
     }
+
+    $data = json_decode($request->getContent(), true);
+
+    if (empty($data['username']) || empty($data['email']) || empty($data['password'])) {
+        return $this->json(['message' => 'Les données sont incomplètes.'], 400);
+    }
+
+    $user = new User();
+    $user->setUsername($data['username']);
+    $user->setEmail($data['email']);
+    $user->setPassword(password_hash($data['password'], PASSWORD_BCRYPT));
+    $user->setRoles(['ROLE_USER']); 
+
+    $entityManager->persist($user);
+    $entityManager->flush();
+
+    // Renvoi les données de l'utilisateur créé (id, username, email, roles)
+    return $this->json([
+        'id' => $user->getId(),
+        'username' => $user->getUsername(),
+        'email' => $user->getEmail(),
+        'roles' => $user->getRoles(),
+    ], 201);
+}
+
 
     #[Route('/api/users/{id}', name: 'update_user', methods: ['PUT'])]
     public function updateUser(int $id, Request $request, UserRepository $userRepository, EntityManagerInterface $entityManager): JsonResponse
