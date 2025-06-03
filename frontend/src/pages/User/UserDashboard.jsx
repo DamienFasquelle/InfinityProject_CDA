@@ -1,62 +1,28 @@
-import React, { useState } from 'react';
-import { FaUser, FaHeart, FaComments } from 'react-icons/fa'; // Importation des icônes
+import React, { useContext, useState } from 'react';
+import { Button } from 'react-bootstrap';
+import { AuthContext } from '../../providers/AuthProvider';
 import UserProfile from './UserProfile';
-import UserComments from './UserComments';
 import UserFavorites from './UserFavorites';
+import UserComments from './UserComments';
 
 const UserDashboard = () => {
+  const { userInfo } = useContext(AuthContext);
   const [selectedView, setSelectedView] = useState('profile');
 
-  const renderView = () => {
-    switch (selectedView) {
-      case 'profile':
-        return <UserProfile />;
-      case 'favorites':
-        return <UserFavorites />;
-      case 'comments':
-        return <UserComments />;
-      default:
-        return <UserProfile />;
-    }
-  };
+  const renderMenu = () => (
+    <div className="d-flex justify-content-around bg-dark text-light p-3 mb-4">
+      <Button variant={selectedView === 'profile' ? 'info' : 'outline-info'} onClick={() => setSelectedView('profile')}>Profil</Button>
+      <Button variant={selectedView === 'favorites' ? 'info' : 'outline-info'} onClick={() => setSelectedView('favorites')}>Favoris</Button>
+      <Button variant={selectedView === 'comments' ? 'info' : 'outline-info'} onClick={() => setSelectedView('comments')}>Commentaires</Button>
+    </div>
+  );
 
   return (
-    <div className="user-dashboard-container" style={{ display: 'flex' }}>
-      <div className="sidebar" style={{ width: '20%', borderRight: '1px solid #ddd', padding: '1rem' }}>
-        <h3 style={{ color: '#00ffff' }}>Menu</h3>
-        <ul style={{ listStyleType: 'none', padding: 0 }}>
-          <li style={{ margin: '20px 0' }}>
-            <button
-              onClick={() => setSelectedView('profile')}
-              style={{ background: 'none', color: '#00ffff', border: 'none', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '10px' }}
-            >
-              <FaUser style={{ fontSize: '1.3rem' }} />
-              Mes informations
-            </button>
-          </li>
-          <li style={{ margin: '20px 0' }}>
-            <button
-              onClick={() => setSelectedView('favorites')}
-              style={{ background: 'none', color: '#00ffff', border: 'none', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '10px' }}
-            >
-              <FaHeart style={{ fontSize: '1.3rem' }} />
-              Mes jeux en favoris
-            </button>
-          </li>
-          <li style={{ margin: '20px 0' }}>
-            <button
-              onClick={() => setSelectedView('comments')}
-              style={{ background: 'none', color: '#00ffff', border: 'none', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '10px' }}
-            >
-              <FaComments style={{ fontSize: '1.3rem' }} />
-              Mes commentaires
-            </button>
-          </li>
-        </ul>
-      </div>
-      <div className="main-content" style={{ flex: 1, padding: '1rem' }}>
-        {renderView()}
-      </div>
+    <div className="container mt-4">
+      {renderMenu()}
+      {selectedView === 'profile' && <UserProfile userId={userInfo?.userId} />}
+      {selectedView === 'favorites' && <UserFavorites />}
+      {selectedView === 'comments' && <UserComments userId={userInfo?.userId} />}
     </div>
   );
 };

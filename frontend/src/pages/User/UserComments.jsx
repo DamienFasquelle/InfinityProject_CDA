@@ -1,83 +1,68 @@
-import React, { useState, useEffect, useContext } from "react";
-import { AuthContext } from "../../providers/AuthProvider";
-import { useNavigate } from "react-router-dom";
-import { Button } from "react-bootstrap";
+import React, { useState, useEffect } from 'react';
+import { Card, Button, Badge, Spinner } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 
-const UserComments = () => {
+const UserComments = ({ userId }) => {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { userInfo } = useContext(AuthContext);
   const navigate = useNavigate();
-  const API_URL = process.env.REACT_APP_API_URL;
-
-
-  const handleClick = (gameId) => {
-    navigate(`/gamepage/${gameId}`);
-  };
-console.log("UserComments component rendered with userInfo:", userInfo);
+  const token = localStorage.getItem('token');
+  
   useEffect(() => {
-    if (!userInfo || !userInfo.userId) {
-      console.error("Informations utilisateur non disponibles");
-      setLoading(false);
-      return;
-    }
-
+    const API_URL = process.env.REACT_APP_API_URL;
     const fetchComments = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        console.error("Utilisateur non authentifié");
-        setLoading(false);
-        return;
-      }
-
       try {
-        const response = await fetch(
-          `${API_URL}/api/users/${userInfo.userId}/comments`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            credentials: "include",
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          setComments(data);
-        } else {
-          console.error("Erreur lors de la récupération des commentaires");
-        }
-      } catch (error) {
-        console.error("Erreur:", error);
+        const res = await fetch(`${API_URL}/api/users/${userId}/comments`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        setComments(data);
+      } catch (err) {
+        console.error('Erreur lors du chargement des commentaires', err);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchComments();
-  }, [userInfo]);
-
-  if (loading) return <p>Chargement des commentaires...</p>;
+    if (userId) fetchComments();
+  }, [userId]);
 
   return (
-    <div className="user-comments">
-      <h2>Mes commentaires</h2>
-      <div className="comments-list">
-        {comments.length > 0 ? (
-          comments.map((comment) => (
-            <div key={comment.id} className="comment">
-              <p className="comment-content">{comment.content}</p>
-              <p className="comment-rating">Note : {comment.rating}</p>
-              <Button onClick={() => handleClick(comment.gameId)}>
-                Voir le jeu
-              </Button>
-            </div>
-          ))
-        ) : (
-          <p>Aucun commentaire trouvé.</p>
-        )}
-      </div>
-    </div>
+    <Card className="p-4 mb-4 shadow-sm">
+      <h2 className="mb-4 text-primary">Commentaires</h2>
+
+      {loading ? (
+        <div className="text-center py-5">
+          <Spinner animation="border" variant="info" />
+          <p className="mt-3 text-muted">Chargement des commentaires...</p>
+        </div>
+      ) : comments.length === 0 ? (
+        <div className="text-center text-muted py-3">
+          <p>Aucun commentaire n’a été posté.</p>
+        </div>
+      ) : (
+        comments.map((comment) => (
+          <Card key={comment.id} className="mb-3 shadow-sm border-info">
+            <Card.Body>
+              <Card.Text className="mb-2" style={{ fontSize: '1.1rem' }}>
+                <strong>{comment.content}</strong>
+              </Card.Text>
+              <Badge bg="info" className="mb-2">
+                Note : {comment.rating}/5
+              </Badge>
+              <div className="mt-3 text-end">
+                <Button
+                  variant="outline-info"
+                  size="sm"
+                  onClick={() => navigate(`/gamepage/${comment.gameId}`)}
+                >
+                  Voir le jeu
+                </Button>
+              </div>
+            </Card.Body>
+          </Card>
+        ))
+      )}
+    </Card>
   );
 };
 
