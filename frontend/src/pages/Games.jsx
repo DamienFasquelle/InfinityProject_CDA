@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Row, Col, Form} from 'react-bootstrap';
-import { useGames } from '../providers/GameProvider'; 
+import { Button, Row, Col, Form, Card } from 'react-bootstrap';
+import { useGames } from '../providers/GameProvider';
 import { fetchPlatforms, fetchGenres, fetchGames, fetchTags } from '../services/rawgService';
 import GameCard from '../components/GameCard';
 
 const Games = () => {
-  const [games, setGames] = useState([]); 
+  const [games, setGames] = useState([]);
   const { gamesData, loading } = useGames();
   const [platforms, setPlatforms] = useState([]);
   const [genres, setGenres] = useState([]);
@@ -17,7 +17,7 @@ const Games = () => {
     rating: '',
   });
 
-  const [gamesToShow, setGamesToShow] = useState(100); 
+  const [gamesToShow, setGamesToShow] = useState(100);
 
   useEffect(() => {
     const fetchFiltersData = async () => {
@@ -31,18 +31,18 @@ const Games = () => {
         setTags(tagsData.results);
         setGames(gamesData);
       } catch (error) {
-        console.error("Error fetching filter data: ", error);
+        console.error("Erreur lors du chargement des filtres :", error);
       }
     };
 
     fetchFiltersData();
-  }, []); 
+  }, []);
 
   useEffect(() => {
     if (gamesData && gamesData.length > 0) {
       setGames(gamesData);
     }
-  }, [gamesData]); 
+  }, [gamesData]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -71,109 +71,75 @@ const Games = () => {
   });
 
   return (
-    <div className="games-container">
-      <div className="filter-section mb-4 text-center">
-        <h3>Filtrer les jeux</h3>
-        
-        {/* Filters row */}
-        <Row className="justify-content-center">
-          {/* Plateforme Filter */}
+    <div className="games-container fadeInUp">
+      <Card className="filter-section p-4 mb-5 text-light bg-dark shadow-lg border-0">
+        <h3 className="text-center text-primary mb-4">🎮 Filtrer les jeux</h3>
+        <Row className="gy-3 justify-content-center">
           <Col md={2} sm={6} xs={12}>
             <Form.Group controlId="platform">
               <Form.Label>Plateforme</Form.Label>
-              <Form.Control
-                as="select"
-                name="platform"
-                value={filters.platform}
-                onChange={handleFilterChange}
-              >
-                <option value="">Toutes les plateformes</option>
-                {platforms.map((platform) => (
-                  <option key={platform.id} value={platform.name}>
-                    {platform.name}
-                  </option>
+              <Form.Select name="platform" value={filters.platform} onChange={handleFilterChange}>
+                <option value="">Toutes</option>
+                {platforms.map((p) => (
+                  <option key={p.id} value={p.name}>{p.name}</option>
                 ))}
-              </Form.Control>
+              </Form.Select>
             </Form.Group>
           </Col>
 
-          {/* Genre Filter */}
           <Col md={2} sm={6} xs={12}>
             <Form.Group controlId="genre">
               <Form.Label>Genre</Form.Label>
-              <Form.Control
-                as="select"
-                name="genre"
-                value={filters.genre}
-                onChange={handleFilterChange}
-              >
-                <option value="">Tous les genres</option>
-                {genres.map((genre) => (
-                  <option key={genre.id} value={genre.name}>
-                    {genre.name}
-                  </option>
+              <Form.Select name="genre" value={filters.genre} onChange={handleFilterChange}>
+                <option value="">Tous</option>
+                {genres.map((g) => (
+                  <option key={g.id} value={g.name}>{g.name}</option>
                 ))}
-              </Form.Control>
+              </Form.Select>
             </Form.Group>
           </Col>
 
-          {/* Tag Filter */}
           <Col md={2} sm={6} xs={12}>
             <Form.Group controlId="tag">
               <Form.Label>Tag</Form.Label>
-              <Form.Control
-                as="select"
-                name="tag"
-                value={filters.tag}
-                onChange={handleFilterChange}
-              >
-                <option value="">Tous les tags</option>
-                {tags.map((tag) => (
-                  <option key={tag.id} value={tag.name}>
-                    {tag.name}
-                  </option>
+              <Form.Select name="tag" value={filters.tag} onChange={handleFilterChange}>
+                <option value="">Tous</option>
+                {tags.map((t) => (
+                  <option key={t.id} value={t.name}>{t.name}</option>
                 ))}
-              </Form.Control>
+              </Form.Select>
             </Form.Group>
           </Col>
 
-          {/* Rating Filter */}
           <Col md={2} sm={6} xs={12}>
             <Form.Group controlId="rating">
               <Form.Label>Évaluation</Form.Label>
-              <Form.Control
-                as="select"
-                name="rating"
-                value={filters.rating}
-                onChange={handleFilterChange}
-              >
-                <option value="">Toutes les évaluations</option>
-                <option value="4">4 étoiles et plus</option>
-                <option value="3">3 étoiles et plus</option>
-                <option value="2">2 étoiles et plus</option>
-              </Form.Control>
+              <Form.Select name="rating" value={filters.rating} onChange={handleFilterChange}>
+                <option value="">Toutes</option>
+                <option value="4">4+</option>
+                <option value="3">3+</option>
+                <option value="2">2+</option>
+                <option value="2">1+</option>
+              </Form.Select>
             </Form.Group>
           </Col>
+
+          <Col xs={12} className="text-center mt-3">
+            <Button className="btn-gradient" onClick={handleResetFilters}>
+              Réinitialiser les filtres
+            </Button>
+          </Col>
         </Row>
+      </Card>
 
-        {/* Reset Button */}
-        <Button 
-          variant="secondary" 
-          className="mt-3"
-          onClick={handleResetFilters}
-        >
-          Réinitialiser les filtres
-        </Button>
-      </div>
-
-      <div className="container">
-        <h2 className="mt-4 text-center">Jeux disponibles</h2>
+      <div className="container text-light">
+        <h2 className="text-center text-primary mb-4">🎲 Jeux disponibles</h2>
         {loading ? (
-          <p>Chargement des jeux...</p>
+          <p className="text-center">Chargement des jeux...</p>
         ) : (
           <Row className="justify-content-center">
             {filteredGames.slice(0, gamesToShow).map((game) => (
-              <Col key={game.id} md={4} sm={6} lg={2} className="mb-4">
+              <Col key={game.id} md={4} sm={6} lg={2} className="mb-4 fadeInUp">
                 <GameCard game={game} />
               </Col>
             ))}

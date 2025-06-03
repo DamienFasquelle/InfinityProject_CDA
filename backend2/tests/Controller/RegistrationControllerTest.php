@@ -18,7 +18,7 @@ class RegistrationControllerTest extends WebTestCase
 
         $client->request(
             'POST',
-            '/register',
+            '/api/register',
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -43,7 +43,7 @@ class RegistrationControllerTest extends WebTestCase
 
         $client->request(
             'POST',
-            '/register',
+            '/api/register',
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -62,7 +62,7 @@ class RegistrationControllerTest extends WebTestCase
         // Envoi d'un JSON mal formé
         $client->request(
             'POST',
-            '/register',
+            '/api/register',
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -86,7 +86,7 @@ class RegistrationControllerTest extends WebTestCase
 
         $client->request(
             'POST',
-            '/register',
+            '/api/register',
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],

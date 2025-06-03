@@ -48,6 +48,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: FavoriteGame::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
     private Collection $favoriteGames;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+private ?string $photo = null;
+
+
     public function __construct()
     {
         $this->comments = new ArrayCollection();
@@ -202,4 +206,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+public function getPhoto(): ?string
+{
+    return $this->photo;
+}
+
+public function setPhoto(?string $photo): static
+{
+    $this->photo = $photo;
+    return $this;
+}
 }

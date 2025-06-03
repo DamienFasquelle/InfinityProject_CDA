@@ -8,7 +8,7 @@
   RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
   # Rediriger www vers non-www
-  RewriteCond %{HTTP_HOST} ^www\.ddvportfolio\.com$ [NC]
+  RewriteCond %{HTTP_HOST} ^www\.cfthbordeaux\.com$ [NC]
   RewriteRule ^(.*)$ https://infinitygames.ddvportfolio.com/$1 [R=301,L]
 
   # Rediriger toutes les requêtes vers index.html (pour React Router)

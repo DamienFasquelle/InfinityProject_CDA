@@ -8,11 +8,13 @@ const UserComments = () => {
   const [loading, setLoading] = useState(true);
   const { userInfo } = useContext(AuthContext);
   const navigate = useNavigate();
+  const API_URL = process.env.REACT_APP_API_URL;
+
 
   const handleClick = (gameId) => {
     navigate(`/gamepage/${gameId}`);
   };
-
+console.log("UserComments component rendered with userInfo:", userInfo);
   useEffect(() => {
     if (!userInfo || !userInfo.userId) {
       console.error("Informations utilisateur non disponibles");
@@ -30,7 +32,7 @@ const UserComments = () => {
 
       try {
         const response = await fetch(
-          `http://127.0.0.1:8000/api/users/${userInfo.userId}/comments`,
+          `${API_URL}/api/users/${userInfo.userId}/comments`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

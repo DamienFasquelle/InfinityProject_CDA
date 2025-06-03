@@ -21,18 +21,56 @@ class ChatbotService
     }
 
     /**
-     * Détermine si une réponse contient une recommandation.
+     * Détermine si une réponse contient une recommandation de jeux.
      */
-    private function isRecommendation(string $content): bool
+    public function isRecommendation(string $content): bool
     {
         return stripos($content, 'Ces jeux sont disponibles') !== false;
     }
 
     /**
      * Génère une réponse complète du chatbot.
+     * @param string $userMessage
+     * @param array $chatHistory Historique sous forme [['role' => 'user'|'assistant', 'content' => '...'], ...]
+     * @return string
      */
-    public function getChatbotResponse(string $userMessage): string
+    public function getChatbotResponse(string $userMessage, array $chatHistory = []): string
     {
+        $systemPrompt = <<<EOT
+Tu es un assistant expert en jeux vidéo pour un site web. Tu aides les utilisateurs à trouver des jeux adaptés à leurs goûts.
+
+Dans un premier temps, si l'utilisateur mentionne un ou plusieurs jeux, tu les reconnais et tu les utilises pour affiner tes recommandations et tu peux déjà lui proposer des jeux similaires.
+Si l'utilisateur ne mentionne pas de jeux, tu lui demandes des précisions sur ses préférences avant de faire des recommandations.
+
+Commence par leur poser des questions pour cerner ce qu’ils aiment :
+- Genres préférés (action, stratégie, RPG...)
+- Plateformes (PC, PlayStation, Switch, etc.)
+- Préférence solo/multijoueur
+- Ambiances recherchées (futuriste, fantasy, réaliste, etc.)
+
+Quand tu as assez d’informations, propose entre 3 et 5 jeux. Pour chaque jeu, donne :
+- 🕹️ Nom
+- 📄 Brève description
+- 🖥️ Plateformes disponibles
+
+Termine toujours avec :
+
+🔍 Ces jeux sont disponibles dans la section *Jeux recommandés* sur notre site.
+
+📋 Liste des jeux recommandés :
+- [Titre du jeu 1]
+- [Titre du jeu 2]
+- [Titre du jeu 3]
+
+Si l’utilisateur ne parle pas de jeux, continue la discussion normalement en étant sympathique, mais reviens sur la thématique jeux quand c’est possible.
+EOT;
+
+        $messages = array_merge(
+            [['role' => 'system', 'content' => $systemPrompt]],
+            $chatHistory,
+            [['role' => 'user', 'content' => $userMessage]]
+        );
+
         try {
             $response = $this->httpClient->request('POST', $this->chatGptApiUrl, [
                 'headers' => [
@@ -41,30 +79,7 @@ class ChatbotService
                 ],
                 'json' => [
                     'model' => 'gpt-4',
-                    'messages' => [
-                        [
-                            'role' => 'system',
-                            'content' => <<<EOT
-Tu es un assistant expert en jeux vidéo. Tu aides les utilisateurs à trouver des jeux qui leur correspondent parfaitement.
-
-Commence par leur poser des questions pour mieux cerner leurs goûts (type de jeu, plateforme, ambiance, solo/multi...). Sois naturel et sympathique.
-
-Quand tu as assez d'informations, propose entre 3 et 5 jeux. Pour chaque jeu, donne :
-- Le nom
-- Une brève description
-- La plateforme
-
-Termine toujours ta recommandation par : 
-🔍 Ces jeux sont disponibles dans la section *Jeux recommandés* sur notre site.
-
-Si l'utilisateur ne parle pas de jeux, continue la conversation normalement.
-EOT
-                        ],
-                        [
-                            'role' => 'user',
-                            'content' => $userMessage
-                        ],
-                    ],
+                    'messages' => $messages,
                     'temperature' => 0.8,
                     'max_tokens' => 600,
                 ],
@@ -73,7 +88,7 @@ EOT
             $data = $response->toArray();
             $content = $data['choices'][0]['message']['content'] ?? '';
 
-            // Ajoute une trace en console Symfony
+            // Log Symfony (visible en dev)
             error_log('🧠 Réponse OpenAI : ' . $content);
 
             return $content;

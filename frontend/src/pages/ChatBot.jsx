@@ -5,95 +5,97 @@ const ChatBot = ({ onGameRecommendations }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [recommendedGames, setRecommendedGames] = useState([]);
-
   const [isTyping, setIsTyping] = useState(false);
-
   const messagesEndRef = useRef(null);
+
   const token = localStorage.getItem("token");
   const API_URL = process.env.REACT_APP_API_URL;
 
+  // Scroll auto vers le bas
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const toggleChatbot = () => setIsOpen((prev) => !prev);
 
-  const sendMessage = useCallback(async () => {
-  if (!input.trim()) return;
-
   const extractGameTitles = (responseText) => {
   const lines = responseText.split("\n");
 
-  const gameLines = lines.filter((line) =>
-    line.match(/^(\d+\.|\-|\*|•)\s+\*\*(.+?)\*\*/)
+  const startIndex = lines.findIndex(line =>
+    line.includes("📋 Liste des jeux recommandés :")
   );
 
-  const games = gameLines.map((line) => {
-    const match = line.match(/\*\*(.+?)\*\*/);
-    return match ? { title: match[1].trim() } : null;
-  }).filter(Boolean);
+  if (startIndex === -1) return [];
 
-  return games;
+  const gameLines = lines.slice(startIndex + 1).filter(line => line.startsWith("- "));
+
+  return gameLines.map(line => ({
+    title: line.replace("- ", "").trim()
+  }));
 };
 
 
+  const sendMessage = useCallback(async () => {
+    if (!input.trim()) return;
 
-  const updatedMessages = [...messages, { role: "user", content: input }];
-  setMessages(updatedMessages);
-  setIsTyping(true);
-  setInput("");
+    const newUserMessage = { role: "user", content: input };
+    const updatedMessages = [...messages, newUserMessage];
 
-  try {
-    const response = await fetch(`${API_URL}/api/chatbot`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ message: input }),
-    });
+    setMessages(updatedMessages);
+    setInput("");
+    setIsTyping(true);
 
-    const data = await response.json();
-    const botResponse = data.message;
+    // Formater le bon historique pour l’API OpenAI
+    const formattedHistory = updatedMessages.map(msg => ({
+      role: msg.role === "bot" ? "assistant" : msg.role,
+      content: msg.content
+    }));
 
-    const isRecommendation = botResponse.includes("Ces jeux sont disponibles dans la section *Jeux recommandés*");
-    const newBotMessage = { role: "bot", content: botResponse };
+    try {
+      const response = await fetch(`${API_URL}/api/chatbot`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: input,
+          history: formattedHistory
+        })
+      });
 
-    setMessages((prev) => [...prev, newBotMessage]);
+      const data = await response.json();
+      const botResponse = data.message || "Pas de réponse";
 
-    if (isRecommendation) {
-  const gameTitles = extractGameTitles(botResponse);
-  setRecommendedGames(gameTitles); 
-  onGameRecommendations(gameTitles); 
-  console.log("Jeux recommandés:", gameTitles);
-}
+      const botMessage = { role: "bot", content: botResponse };
+      setMessages(prev => [...prev, botMessage]);
+      console.log("Réponse du bot:", botResponse);
 
-  } catch (error) {
-    console.error("Erreur avec le chatbot:", error);
-    setMessages((prev) => [
-      ...prev,
-      {
+      if (botResponse.includes("Jeux recommandés")) {
+        const gameTitles = extractGameTitles(botResponse);
+        onGameRecommendations(gameTitles);
+        console.log("Jeux recommandés:", gameTitles);
+      }
+
+    } catch (error) {
+      console.error("Erreur avec le chatbot:", error);
+      setMessages(prev => [...prev, {
         role: "bot",
-        content: "Une erreur est survenue. Réessayez plus tard.",
-      },
-    ]);
-  } finally {
-    setIsTyping(false);
-  }
-}, [input, messages, API_URL, token, onGameRecommendations]);
-
+        content: "❌ Une erreur est survenue. Réessayez plus tard."
+      }]);
+    } finally {
+      setIsTyping(false);
+    }
+  }, [input, messages, API_URL, token, onGameRecommendations]);
 
   const TypingIndicator = () => {
     const [dots, setDots] = useState("");
-
     useEffect(() => {
       const interval = setInterval(() => {
-        setDots((prev) => (prev.length < 3 ? prev + "." : ""));
+        setDots(prev => (prev.length < 3 ? prev + "." : ""));
       }, 500);
       return () => clearInterval(interval);
     }, []);
-
     return <span className="typing-indicator">Le bot écrit{dots}</span>;
   };
 
@@ -105,20 +107,19 @@ const ChatBot = ({ onGameRecommendations }) => {
         className="chatbot-toggle"
         onClick={toggleChatbot}
       />
+
       {isOpen && (
         <div className="chatbot-window">
           <div className="chatbot-header">
             <strong>ChatBot</strong>
             <button onClick={toggleChatbot} aria-label="Fermer">✖</button>
           </div>
+
           <div className="chatbot-body">
             {messages.map((msg, index) => (
-             <div key={index} className={`chat-message ${msg.role}`}>
-  <div className="message-bubble">
-    {msg.content}
-  </div>
-</div>
-
+              <div key={index} className={`chat-message ${msg.role}`}>
+                <div className="message-bubble">{msg.content}</div>
+              </div>
             ))}
 
             {isTyping && (
@@ -144,7 +145,6 @@ const ChatBot = ({ onGameRecommendations }) => {
         </div>
       )}
     </div>
-    
   );
 };
 

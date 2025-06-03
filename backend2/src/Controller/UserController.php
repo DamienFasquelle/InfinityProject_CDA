@@ -10,6 +10,8 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\String\Slugger\SluggerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
 class UserController extends AbstractController
@@ -194,4 +196,118 @@ public function createUser(Request $request, EntityManagerInterface $entityManag
 
         return $this->json(['message' => 'Utilisateur supprimé avec succès.']);
     }
-}
+    #[Route('/api/users/{id}/upload-photo', name: 'upload_user_photo', methods: ['POST'])]
+    public function uploadUserPhoto(
+        int $id,
+        Request $request,
+        UserRepository $userRepository,
+        EntityManagerInterface $entityManager,
+        SluggerInterface $slugger
+    ): JsonResponse {
+        $user = $userRepository->find($id);
+
+        if (!$user) {
+            return $this->json(['message' => 'Utilisateur non trouvé.'], 404);
+        }
+
+        /** @var UploadedFile $photo */
+        $photo = $request->files->get('photo');
+
+        if (!$photo) {
+            return $this->json(['message' => 'Aucun fichier envoyé.'], 400);
+        }
+
+        $originalFilename = pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME);
+        $safeFilename = $slugger->slug($originalFilename);
+        $newFilename = $safeFilename . '-' . uniqid() . '.' . $photo->guessExtension();
+
+        try {
+            $photo->move(
+                $this->getParameter('user_photos_directory'), 
+                $newFilename
+            );
+        } catch (FileException $e) {
+            return $this->json(['message' => 'Erreur lors de l’upload de la photo.'], 500);
+        }
+
+        $user->setPhoto($newFilename);
+        $entityManager->flush();
+
+        return $this->json(['message' => 'Photo mise à jour avec succès.', 'filename' => $newFilename]);
+    }
+    #[Route('/api/users/{id}/photo', name: 'update_user_photo', methods: ['PUT'])]
+    public function updateUserPhoto(
+        int $id,
+        Request $request,
+        UserRepository $userRepository,
+        EntityManagerInterface $em,
+        SluggerInterface $slugger
+    ): JsonResponse {
+        $user = $userRepository->find($id);
+
+        if (!$user) {
+            return $this->json(['message' => 'Utilisateur non trouvé.'], 404);
+        }
+
+        /** @var UploadedFile $photo */
+        $photo = $request->files->get('photo');
+
+        if (!$photo) {
+            return $this->json(['message' => 'Aucun fichier envoyé.'], 400);
+        }
+
+        // Supprimer l'ancienne photo si elle existe
+        if ($user->getPhoto()) {
+            $oldPath = $this->getParameter('user_photos_directory') . '/' . $user->getPhoto();
+            if (file_exists($oldPath)) {
+                unlink($oldPath);
+            }
+        }
+
+        $originalFilename = pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME);
+        $safeFilename = $slugger->slug($originalFilename);
+        $newFilename = $safeFilename . '-' . uniqid() . '.' . $photo->guessExtension();
+
+        try {
+            $photo->move(
+                $this->getParameter('user_photos_directory'),
+                $newFilename
+            );
+        } catch (FileException $e) {
+            return $this->json(['message' => 'Erreur lors de l’upload de la nouvelle photo.'], 500);
+        }
+
+        $user->setPhoto($newFilename);
+        $em->flush();
+
+        return $this->json(['message' => 'Photo mise à jour avec succès.', 'filename' => $newFilename]);
+    }
+
+    #[Route('/api/users/{id}/photo', name: 'delete_user_photo', methods: ['DELETE'])]
+    public function deleteUserPhoto(
+        int $id,
+        UserRepository $userRepository,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $user = $userRepository->find($id);
+
+        if (!$user) {
+            return $this->json(['message' => 'Utilisateur non trouvé.'], 404);
+        }
+
+        if (!$user->getPhoto()) {
+            return $this->json(['message' => 'Aucune photo à supprimer.'], 400);
+        }
+
+        $filePath = $this->getParameter('user_photos_directory') . '/' . $user->getPhoto();
+
+        if (file_exists($filePath)) {
+            unlink($filePath);
+        }
+
+        $user->setPhoto(null);
+        $em->flush();
+
+        return $this->json(['message' => 'Photo supprimée avec succès.']);
+    }
+    }

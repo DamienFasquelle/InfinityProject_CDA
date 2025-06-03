@@ -22,8 +22,9 @@ public function interact(Request $request): JsonResponse
 {
     $content = json_decode($request->getContent(), true);
     $userMessage = $content['message'] ?? '';
+    $history = $content['history'] ?? [];
 
-    $chatbotResponse = $this->chatbotService->getChatbotResponse($userMessage);
+    $chatbotResponse = $this->chatbotService->getChatbotResponse($userMessage, $history);
 
     return new JsonResponse(['message' => $chatbotResponse]);
 

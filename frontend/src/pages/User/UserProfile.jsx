@@ -8,16 +8,13 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const { userInfo } = useContext(AuthContext);
-
   const API_URL = process.env.REACT_APP_API_URL;
-
+  
   useEffect(() => {
-    if (!userInfo || !userInfo.userId) {
-      console.error("Informations utilisateur non disponibles");
-      setLoading(false);
-      return;
-    }
-
+    if (!userInfo?.userId) {
+    setLoading(false);
+    return;
+  }
     const fetchUserProfile = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
