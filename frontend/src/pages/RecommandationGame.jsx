@@ -63,7 +63,7 @@ const RecommandationGame = ({ games }) => {
         ) : (
           !loading && (
             <div className="no-recommendation text-center mt-4">
-              <p>Aucune recommandation disponible pour l’instant.</p>
+              <p>Les jeux recommandés par le chatbot seront affichés ici.</p>
             </div>
           )
         )}

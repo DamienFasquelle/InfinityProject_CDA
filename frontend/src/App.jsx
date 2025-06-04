@@ -18,6 +18,7 @@ import { AuthContext } from "./providers/AuthProvider";
 import UserDashboard from "./pages/User/UserDashboard";
 import RecommandationGame from "./pages/RecommandationGame";
 import ScrollToTop from "./components/ScrollToTop";
+import SimilarGamesPage from "./pages/User/SimilarGamesPage";
 
 const App = () => {
   const { isAuthenticated } = useContext(AuthContext);
@@ -52,6 +53,14 @@ const App = () => {
         <Route path="/contact" element={<Contact />} />
 
         {/* Routes protégées */}
+        <Route
+          path="/similar-games"
+          element={
+            <PrivateRoute allowedRoles={["ROLE_USER", "ROLE_ADMIN"]}>
+              <SimilarGamesPage />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/user"
           element={

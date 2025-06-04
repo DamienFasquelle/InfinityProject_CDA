@@ -1,4 +1,4 @@
-/* Variables */
+/* ================== Variables ================== */
 :root {
   --bg-dark: #0e0e0e;
   --bg-medium: #1a1a1a;
@@ -14,7 +14,7 @@
   --shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
 }
 
-/* Global Styles */
+/* ================== Global ================== */
 body {
   margin: 0;
   font-family: "Roboto", sans-serif;
@@ -36,10 +36,9 @@ a {
   text-decoration: none;
   transition: color var(--transition);
 }
-
 a:hover {
-  text-decoration: underline;
   color: var(--secondary);
+  text-decoration: underline;
 }
 
 footer, .footer {
@@ -48,12 +47,11 @@ footer, .footer {
   padding: 1.5rem 0;
   margin-top: auto;
 }
-
 .footer p, .footer a {
   margin: 0.5rem 0;
 }
 
-/* Cards */
+/* ================== Cards & Common Blocks ================== */
 .card, .info-card, .comments-list, .form-container, .game-info, .comment, .add-comment-form, .user-profile, .user-comments {
   background-color: var(--bg-medium);
   border-radius: var(--border-radius);
@@ -76,7 +74,14 @@ footer, .footer {
   color: var(--text-muted);
 }
 
-.btn-gradient, .card-button, .form-container button, .add-comment-form button {
+.card:hover {
+  transform: scale(1.03);
+  transition: transform 0.3s ease;
+  box-shadow: 0 8px 20px rgba(0, 255, 255, 0.3);
+}
+
+/* ================== Buttons ================== */
+.btn-gradient, .card-button, .form-container button, .add-comment-form button, .chatbot-input button {
   background: linear-gradient(90deg, var(--primary), var(--secondary));
   color: var(--text-light);
   border: none;
@@ -86,28 +91,20 @@ footer, .footer {
   transition: background var(--transition), color var(--transition);
 }
 
-.btn-gradient:hover, .card-button:hover, .form-container button:hover, .add-comment-form button:hover {
+.btn-gradient:hover, .card-button:hover, .form-container button:hover, .add-comment-form button:hover, .chatbot-input button:hover {
   background: linear-gradient(90deg, var(--secondary), var(--primary));
   color: #000;
 }
-
-.card:hover {
-  transform: scale(1.03);
-  transition: transform 0.3s ease;
-  box-shadow: 0 8px 20px rgba(0, 255, 255, 0.3);
-}
-
 
 .btn-danger {
   background-color: var(--danger);
   transition: background-color var(--transition);
 }
-
 .btn-danger:hover {
   background-color: var(--danger);
 }
 
-/* Navbar */
+/* ================== Navbar ================== */
 .header-container {
   background-color: #343a40;
 }
@@ -128,41 +125,27 @@ footer, .footer {
   padding: 0.5rem;
   font-size: 1rem;
 }
-
 .navbar-nav .nav-link:hover {
   color: var(--secondary);
 }
 
-/* Search Form */
-.search-form {
-  max-width: 400px;
-  margin: 0 auto;
-  position: relative;
-  width: 100%;
-}
-
-.search-form input, .chatbot-input input, .add-comment-form select {
+/* ================== Forms ================== */
+input, select, textarea {
   width: 100%;
   padding: 0.5rem 1rem;
-  border: 1px solid var(--secondary);
   border-radius: var(--border-radius);
   background-color: var(--bg-medium);
   color: var(--text-light);
-}
-
-.search-results, .chatbot-window, .comment {
-  background-color: var(--bg-medium);
   border: 1px solid var(--secondary);
-  border-radius: var(--border-radius);
 }
 
-.search-item:hover, .chatbot-input button:hover {
-  background-color: var(--secondary);
-  color: var(--text-light);
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 5px var(--primary);
 }
 
-/* Chatbot */
-/* Chatbot container fixed at bottom-right */
+/* ================== Chatbot ================== */
 .chatbot-container {
   position: fixed;
   bottom: 20px;
@@ -170,23 +153,20 @@ footer, .footer {
   z-index: 9999;
 }
 
-/* Bouton manette */
 .chatbot-toggle {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  cursor: pointer;
   background-color: var(--primary);
   box-shadow: var(--shadow);
   padding: 12px;
+  cursor: pointer;
   transition: transform 0.3s ease;
 }
-
 .chatbot-toggle:hover {
   transform: rotate(360deg);
 }
 
-/* Fenêtre du chatbot */
 .chatbot-window {
   width: 350px;
   height: 480px;
@@ -199,7 +179,6 @@ footer, .footer {
   animation: fadeInUp 0.4s ease;
 }
 
-/* En-tête */
 .chatbot-header {
   background: linear-gradient(90deg, var(--primary), var(--secondary));
   color: #000;
@@ -211,7 +190,6 @@ footer, .footer {
   align-items: center;
 }
 
-/* Corps des messages */
 .chatbot-body {
   flex: 1;
   padding: 1rem;
@@ -219,7 +197,6 @@ footer, .footer {
   background-color: var(--bg-dark);
 }
 
-/* Messages stylisés */
 .chat-message {
   display: flex;
   margin-bottom: 0.75rem;
@@ -229,7 +206,6 @@ footer, .footer {
 .chat-message.user {
   justify-content: flex-end;
 }
-
 .chat-message.bot {
   justify-content: flex-start;
 }
@@ -239,7 +215,6 @@ footer, .footer {
   padding: 12px 18px;
   border-radius: 20px;
   line-height: 1.4;
-  position: relative;
   box-shadow: var(--shadow);
 }
 
@@ -248,14 +223,12 @@ footer, .footer {
   color: #000;
   border-bottom-right-radius: 0;
 }
-
 .chat-message.bot .message-bubble {
   background-color: var(--bg-light);
   color: var(--text-light);
   border-bottom-left-radius: 0;
 }
 
-/* Saisie */
 .chatbot-input {
   display: flex;
   gap: 0.5rem;
@@ -268,32 +241,12 @@ footer, .footer {
   flex: 1;
   padding: 0.6rem 1rem;
   border-radius: 30px;
-  border: none;
   background-color: var(--bg-light);
+  border: none;
   color: var(--text-light);
 }
 
-.chatbot-input input:focus {
-  outline: none;
-  border: 1px solid var(--primary);
-}
-
-.chatbot-input button {
-  background: linear-gradient(90deg, var(--primary), var(--secondary));
-  color: #000;
-  padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 30px;
-  font-weight: bold;
-  transition: all 0.3s ease;
-}
-
-.chatbot-input button:hover {
-  background: linear-gradient(90deg, var(--secondary), var(--primary));
-  color: #fff;
-}
-
-/* Typing indicator animé */
+/* ================== Typing + Animations ================== */
 .typing-indicator {
   font-style: italic;
   color: var(--text-muted);
@@ -307,7 +260,6 @@ footer, .footer {
   100% { opacity: 0.2; }
 }
 
-/* Animation entrée */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -319,7 +271,13 @@ footer, .footer {
   }
 }
 
-/* Responsive */
+.fadeInUp, .mb-4, .animated-card, .home {
+  animation: fadeInUp 0.6s ease forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* ================== Responsive ================== */
 @media (max-width: 480px) {
   .chatbot-window {
     width: 100vw;
@@ -330,8 +288,23 @@ footer, .footer {
   }
 }
 
+@media (max-width: 768px) {
+  .intro h1 { font-size: 2rem; }
+  .info-card { padding: 1.5rem; }
+  .recent-games h2, .popular-games h2 { font-size: 1.6rem; }
+  .navbar { flex-direction: column; align-items: flex-start; }
+  .navbar-nav { width: 100%; justify-content: space-around; margin-top: 1rem; }
+  .main-header { padding: 0.8rem; }
+  .search-form { width: 100%; }
+}
 
-/* Rating / Tags */
+@media (max-width: 991.98px) {
+  .search-form {
+    width: 100% !important;
+  }
+}
+
+/* ================== UI Blocks ================== */
 .genre, .tag {
   background-color: var(--secondary);
   color: var(--text-light);
@@ -350,25 +323,85 @@ footer, .footer {
 .alert-danger { background-color: var(--danger); }
 .alert-success { background-color: var(--success); }
 
-/* Utility */
-.fadeInUp {
-  animation: fadeInUp 1s ease-in-out;
+.text-shadow {
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* ================== Homepage & Game Cards ================== */
+.intro, .home {
+  padding: 2rem 1rem;
+  max-width: 3000px;
+  margin: 0 auto;
 }
-@media (max-width: 991.98px) {
-  .search-form {
-    width: 100% !important;
-  }
+
+.intro h1 {
+  font-size: 2.8rem;
+  color: var(--primary);
+  text-shadow: 0 0 10px var(--primary), 0 0 20px var(--secondary);
+  margin-bottom: 1rem;
+}
+
+.intro-text {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-top: 1rem;
+}
+
+.info-card {
+  background: linear-gradient(135deg, var(--bg-light), var(--bg-medium));
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-align: center;
+  height: 100%;
+}
+.info-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 24px rgba(0, 255, 255, 0.3);
+}
+.info-card h3 {
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+.info-card p {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+.recent-games, .popular-games {
+  padding: 2rem 0;
+}
+.recent-games h2, .popular-games h2 {
+  text-align: center;
+  font-size: 2rem;
+  color: var(--primary);
+  margin-bottom: 2rem;
+  text-shadow: 0 0 6px rgba(0, 255, 255, 0.4);
+}
+
+.card-game-favorite {
+  background-color: var(--bg-medium);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding: 1.5rem;
+}
+.card-game-favorite:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px var(--primary);
+}
+.selected-game {
+  border: 2px solid var(--primary);
+  box-shadow: 0 0 25px var(--primary);
+}
+
+/* ================== Filter / Recommendations ================== */
+.filter-section {
+  border-radius: 16px;
+  background-color: var(--bg-medium);
+  box-shadow: var(--shadow);
+}
+.filter-section h3 {
+  font-weight: 600;
 }
 
 .recommendation-container {
@@ -386,158 +419,10 @@ footer, .footer {
   margin-bottom: 30px;
 }
 
-.animated-card {
-  animation: fadeInUp 0.6s ease forwards;
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-@keyframes fadeInUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .no-recommendation {
   font-size: 1.2rem;
   color: var(--text-muted);
   padding: 2rem;
   border: 2px dashed var(--secondary);
   border-radius: var(--border-radius);
-}
-
-.games-container {
-  padding: 2rem;
-  animation: fadeInUp 1s ease;
-}
-
-.filter-section {
-  border-radius: 16px;
-  background-color: var(--bg-medium);
-  box-shadow: var(--shadow);
-}
-
-.filter-section h3 {
-  font-weight: 600;
-}
-
-select, .form-select {
-  background-color: var(--bg-light);
-  color: var(--text-light);
-  border: 1px solid var(--secondary);
-  transition: all 0.3s ease;
-}
-
-select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 5px var(--primary);
-}
-
-.text-shadow {
-  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
-}
-
-.home {
-  animation: fadeInUp 0.8s ease;
-  padding: 2rem 1rem;
-}
-
-.intro {
-  max-width: 3000px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-}
-
-.intro h1 {
-  font-size: 2.8rem;
-  color: var(--primary);
-  text-shadow: 0 0 10px var(--primary), 0 0 20px var(--secondary);
-  margin-bottom: 1rem;
-}
-
-.intro-text {
-  font-size: 1.1rem;
-  color: var(--text-muted);
-  line-height: 1.7;
-  margin-top: 1rem;
-}
-
-.info-blocks {
-  gap: 2rem;
-}
-
-.info-block {
-  display: flex;
-  justify-content: center;
-  align-items: stretch;
-}
-
-.info-card {
-  background: linear-gradient(135deg, var(--bg-light), var(--bg-medium));
-  padding: 2rem;
-  border-radius: var(--border-radius);
-  box-shadow: 0 8px 16px rgba(0, 255, 255, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  text-align: center;
-  height: 100%;
-}
-
-.info-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 24px rgba(0, 255, 255, 0.3);
-}
-
-.info-card h3 {
-  color: var(--primary);
-  margin-bottom: 1rem;
-}
-
-.info-card p {
-  color: var(--text-muted);
-  font-size: 1rem;
-}
-
-/* Game Sections */
-.recent-games, .popular-games {
-  padding: 2rem 0;
-}
-
-.recent-games h2,
-.popular-games h2 {
-  text-align: center;
-  font-size: 2rem;
-  color: var(--primary);
-  margin-bottom: 2rem;
-  text-shadow: 0 0 6px rgba(0, 255, 255, 0.4);
-}
-
-.mb-4 {
-  animation: fadeInUp 0.5s ease forwards;
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-@keyframes fadeInUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Responsive Tweaks */
-@media (max-width: 768px) {
-  .intro h1 {
-    font-size: 2rem;
-  }
-
-  .info-card {
-    padding: 1.5rem;
-  }
-
-  .recent-games h2,
-  .popular-games h2 {
-    font-size: 1.6rem;
-  }
 }

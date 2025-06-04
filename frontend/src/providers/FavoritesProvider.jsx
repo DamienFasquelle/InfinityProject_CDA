@@ -1,16 +1,17 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { AuthContext } from './AuthProvider'; // adapte le chemin
+import { AuthContext } from './AuthProvider';
 
 export const FavoritesContext = createContext();
 
 export const FavoritesProvider = ({ children }) => {
   const [favoriteGameIds, setFavoriteGameIds] = useState([]);
-  const { isAuthenticated } = useContext(AuthContext); // <-- on écoute l'authentification
+  const [tokenExpired, setTokenExpired] = useState(false);
+  const { isAuthenticated } = useContext(AuthContext); 
   const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
-    const API_URL = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem('token');
+
     if (isAuthenticated && token) {
       const fetchFavorites = async () => {
         try {
@@ -20,6 +21,14 @@ export const FavoritesProvider = ({ children }) => {
               Authorization: `Bearer ${token}`,
             },
           });
+
+          if (response.status === 401) {
+            setTokenExpired(true);
+            localStorage.removeItem('token');
+            setFavoriteGameIds([]);
+            return;
+          }
+
           if (response.ok) {
             const data = await response.json();
             setFavoriteGameIds(data);
@@ -33,17 +42,18 @@ export const FavoritesProvider = ({ children }) => {
 
       fetchFavorites();
     } else {
-      setFavoriteGameIds([]); 
+      setFavoriteGameIds([]);
     }
-  }, [isAuthenticated]); 
+  }, [isAuthenticated]);
 
   const isFavorite = (gameId) => favoriteGameIds.includes(gameId);
 
   const toggleFavorite = async (gameId) => {
     if (!isAuthenticated) {
-      console.error("Utilisateur non authentifié");
+      alert("Vous n'êtes pas connecté.");
       return;
     }
+
     const token = localStorage.getItem('token');
     const alreadyFavorite = isFavorite(gameId);
     const url = alreadyFavorite
@@ -59,6 +69,12 @@ export const FavoritesProvider = ({ children }) => {
         },
         body: JSON.stringify({ gameId }),
       });
+
+      if (response.status === 401) {
+        setTokenExpired(true);
+        localStorage.removeItem('token');
+        return;
+      }
 
       if (response.ok) {
         setFavoriteGameIds((prev) =>
@@ -76,7 +92,14 @@ export const FavoritesProvider = ({ children }) => {
 
   return (
     <FavoritesContext.Provider value={{ favoriteGameIds, isFavorite, toggleFavorite, isAuthenticated }}>
-      {children}
+      <>
+        {tokenExpired && (
+          <div style={{ backgroundColor: '#f8d7da', color: '#721c24', padding: '10px', marginBottom: '10px' }}>
+            Votre session a expiré. Veuillez recharger la page ou vous reconnecter.
+          </div>
+        )}
+        {children}
+      </>
     </FavoritesContext.Provider>
   );
 };

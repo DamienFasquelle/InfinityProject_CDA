@@ -12,21 +12,20 @@ const handleFetch = async (url) => {
   }
 };
 
-export const fetchGames = async (totalPages = 4) => {
-  let allGames = [];
+export const fetchGames = async ({ page = 1, pageSize = 20, filters = {} }) => {
+  const params = new URLSearchParams({
+    key: API_KEY,
+    page,
+    page_size: pageSize,
+  });
 
-  for (let page = 1; page <= totalPages; page++) {
-    const url = `${BASE_URL}/games?key=${API_KEY}&page=${page}`;
-    const data = await handleFetch(url);
+  if (filters.platform) params.append("platforms", filters.platform);
+  if (filters.genre) params.append("genres", filters.genre);
+  if (filters.tag) params.append("tags", filters.tag);
+  if (filters.rating) params.append("metacritic", `${filters.rating},100`);
 
-    if (data?.results) {
-      allGames = [...allGames, ...data.results];
-    } else {
-      console.warn(`Aucun jeu trouvé à la page ${page}`);
-    }
-  }
-
-  return allGames;
+  const url = `${BASE_URL}/games?${params.toString()}`;
+  return await handleFetch(url);
 };
 
 export const fetchPopularGames = async (dates = '2023-01-01', platforms = '18,1,7') => {
@@ -34,11 +33,19 @@ export const fetchPopularGames = async (dates = '2023-01-01', platforms = '18,1,
   return await handleFetch(url);
 };
 
-export const fetchRecentGames = async (date = '2024-01-01') => {
-  const url = `${BASE_URL}/games?key=${API_KEY}&dates=${date},2025-01-01`;
-  const data = await handleFetch(url);
-  return data?.results || [];
+export const fetchRecentGames = async ({ dateFrom, page = 1, pageSize = 12 }) => {
+  const params = new URLSearchParams({
+    key: API_KEY,
+    dates: `${dateFrom},${new Date().toISOString().split('T')[0]}`,
+    ordering: '-released',
+    page,
+    page_size: pageSize,
+  });
+
+  const url = `${BASE_URL}/games?${params.toString()}`;
+  return await handleFetch(url);
 };
+
 
 export const fetchPlatforms = async () => {
   const url = `${BASE_URL}/platforms?key=${API_KEY}`;
@@ -99,7 +106,7 @@ export const fetchSimilarGames = async (currentGameId, genres, tags) => {
   try {
     const genreIds = genres.map((genre) => genre.id).join(",");
     const tagIds = tags.map((tag) => tag.id).join(",");
-    const url = `${BASE_URL}/games?key=${API_KEY}&genres=${genreIds}&tags=${tagIds}&page_size=50`;
+    const url = `${BASE_URL}/games?key=${API_KEY}&genres=${genreIds}&tags=${tagIds}&page_size=1000`;
 
     const data = await handleFetch(url);
     const results = data?.results || [];

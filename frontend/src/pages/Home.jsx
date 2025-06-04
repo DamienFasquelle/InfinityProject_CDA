@@ -1,36 +1,48 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col } from 'react-bootstrap';
+import { Row, Col, Button } from 'react-bootstrap';
 import { useGames } from '../providers/GameProvider';
 import GameCard from '../components/GameCard';
 import { fetchRecentGames } from '../services/rawgService';
 
 const Home = () => {
-  const { games, loading } = useGames(); 
+  const { games, loading: loadingPopular } = useGames();
   const [recentGames, setRecentGames] = useState([]);
+  const [loadingRecent, setLoadingRecent] = useState(true);
+  const [recentPage, setRecentPage] = useState(1);
+  const [recentTotalPages, setRecentTotalPages] = useState(1);
 
+  // Chargement des jeux récents
   useEffect(() => {
     const getRecentGames = async () => {
+      setLoadingRecent(true);
       try {
-        const gamesData = await fetchRecentGames('2023-01-01'); 
-        setRecentGames(gamesData); 
+        const result = await fetchRecentGames({
+          dateFrom: '2023-01-01',
+          page: recentPage,
+          pageSize: 12,
+        });
+        setRecentGames(result.results);
+        setRecentTotalPages(Math.ceil(result.count / 12));
       } catch (error) {
         console.error("Erreur lors de la récupération des jeux récents", error);
+      } finally {
+        setLoadingRecent(false);
       }
     };
 
-    getRecentGames(); 
-  }, []); 
+    getRecentGames();
+  }, [recentPage]);
 
- 
-  const popularGames = games.filter((game) => game.rating >= 4);
+const popularGames = Array.isArray(games)
+  ? games.filter((game) => game.rating >= 4).slice(0, 12)
+  : [];
 
   return (
     <main className="home container">
-   
       <section className="intro text-center my-2">
         <h1>Bienvenue sur Infinity Games</h1>
         <p className="intro-text">
-          Découvrez les jeux vidéo les plus récents, explorez les classiques intemporels et plongez dans un monde de divertissement infini. Que vous soyez un joueur occasionnel ou un passionné, nous avons quelque chose pour tout le monde !
+          Découvrez les jeux vidéo les plus récents, explorez les classiques intemporels et plongez dans un monde de divertissement infini.
         </p>
         <Row className="info-blocks justify-content-center my-5">
           <Col lg={4} md={6} sm={12} className="info-block">
@@ -56,26 +68,48 @@ const Home = () => {
 
       <section className="recent-games my-5">
         <h2>Jeux Récemment Sortis</h2>
-        {loading ? (
+        {loadingRecent ? (
           <p>Chargement des jeux récemment sortis...</p>
         ) : (
-          <Row className="justify-content-center">
-            {recentGames.slice(0, 8).map((game) => (
-              <Col key={game.id} md={6} sm={12} lg={2} className="mb-4">
-                <GameCard game={game} />
-              </Col>
-            ))}
-          </Row>
+          <>
+            <Row className="justify-content-center">
+              {recentGames.map((game) => (
+                <Col key={game.id} md={6} sm={12} lg={2} className="mb-4">
+                  <GameCard game={game} />
+                </Col>
+              ))}
+            </Row>
+
+            <div className="text-center mt-3">
+              <Button
+                onClick={() => setRecentPage((p) => Math.max(p - 1, 1))}
+                disabled={recentPage === 1}
+                className="me-2"
+                variant="outline-light"
+              >
+                ⬅ Précédent
+              </Button>
+              <span className="text-light">{recentPage} / {recentTotalPages}</span>
+              <Button
+                onClick={() => setRecentPage((p) => Math.min(p + 1, recentTotalPages))}
+                disabled={recentPage === recentTotalPages}
+                className="ms-2"
+                variant="outline-light"
+              >
+                Suivant ➡
+              </Button>
+            </div>
+          </>
         )}
       </section>
 
       <section className="popular-games my-5">
         <h2>Jeux Populaires</h2>
-        {loading ? (
+        {loadingPopular ? (
           <p>Chargement des jeux populaires...</p>
         ) : (
           <Row className="justify-content-center">
-            {popularGames.slice(0, 8).map((game) => (
+            {popularGames.map((game) => (
               <Col key={game.id} md={6} sm={12} lg={2} className="mb-4">
                 <GameCard game={game} />
               </Col>
