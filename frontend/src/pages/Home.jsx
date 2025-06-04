@@ -11,7 +11,6 @@ const Home = () => {
   const [recentPage, setRecentPage] = useState(1);
   const [recentTotalPages, setRecentTotalPages] = useState(1);
 
-  // Chargement des jeux récents
   useEffect(() => {
     const getRecentGames = async () => {
       setLoadingRecent(true);
@@ -33,31 +32,32 @@ const Home = () => {
     getRecentGames();
   }, [recentPage]);
 
-const popularGames = Array.isArray(games)
-  ? games.filter((game) => game.rating >= 4).slice(0, 12)
-  : [];
+  const popularGames = Array.isArray(games)
+    ? games.filter((game) => game.rating >= 4).slice(0, 12)
+    : [];
 
   return (
-    <main className="home container">
+    <main className="container">
       <section className="intro text-center my-2">
         <h1>Bienvenue sur Infinity Games</h1>
         <p className="intro-text">
           Découvrez les jeux vidéo les plus récents, explorez les classiques intemporels et plongez dans un monde de divertissement infini.
         </p>
-        <Row className="info-blocks justify-content-center my-5">
-          <Col lg={4} md={6} sm={12} className="info-block">
+
+        <Row as="section" className="info-blocks justify-content-center my-5" aria-label="Présentation des catégories">
+          <Col as="article" lg={4} md={6} sm={12} className="info-block">
             <div className="info-card">
               <h3>Jeux Récents</h3>
               <p>Explorez les dernières sorties de jeux vidéo pour être toujours à jour.</p>
             </div>
           </Col>
-          <Col lg={4} md={6} sm={12} className="info-block">
+          <Col as="article" lg={4} md={6} sm={12} className="info-block">
             <div className="info-card">
               <h3>Jeux Populaires</h3>
               <p>Découvrez les jeux les mieux notés et les plus aimés par la communauté.</p>
             </div>
           </Col>
-          <Col lg={4} md={6} sm={12} className="info-block">
+          <Col as="article" lg={4} md={6} sm={12} className="info-block">
             <div className="info-card">
               <h3>Genres Variés</h3>
               <p>Parcourez une grande variété de genres pour trouver votre prochain coup de cœur.</p>
@@ -66,21 +66,23 @@ const popularGames = Array.isArray(games)
         </Row>
       </section>
 
-      <section className="recent-games my-5">
-        <h2>Jeux Récemment Sortis</h2>
+      {/* Jeux récents */}
+      <section className="recent-games my-5" aria-labelledby="recent-title">
+        <h2 id="recent-title">Jeux Récemment Sortis</h2>
+
         {loadingRecent ? (
           <p>Chargement des jeux récemment sortis...</p>
         ) : (
           <>
             <Row className="justify-content-center">
               {recentGames.map((game) => (
-                <Col key={game.id} md={6} sm={12} lg={2} className="mb-4">
+                <Col as="article" key={game.id} md={6} sm={12} lg={2} className="mb-4">
                   <GameCard game={game} />
                 </Col>
               ))}
             </Row>
 
-            <div className="text-center mt-3">
+            <nav className="text-center mt-3" aria-label="Pagination des jeux récents">
               <Button
                 onClick={() => setRecentPage((p) => Math.max(p - 1, 1))}
                 disabled={recentPage === 1}
@@ -89,7 +91,9 @@ const popularGames = Array.isArray(games)
               >
                 ⬅ Précédent
               </Button>
-              <span className="text-light">{recentPage} / {recentTotalPages}</span>
+              <span className="text-light">
+                {recentPage} / {recentTotalPages}
+              </span>
               <Button
                 onClick={() => setRecentPage((p) => Math.min(p + 1, recentTotalPages))}
                 disabled={recentPage === recentTotalPages}
@@ -98,19 +102,21 @@ const popularGames = Array.isArray(games)
               >
                 Suivant ➡
               </Button>
-            </div>
+            </nav>
           </>
         )}
       </section>
 
-      <section className="popular-games my-5">
-        <h2>Jeux Populaires</h2>
+      {/* Jeux populaires */}
+      <section className="popular-games my-5" aria-labelledby="popular-title">
+        <h2 id="popular-title">Jeux Populaires</h2>
+
         {loadingPopular ? (
           <p>Chargement des jeux populaires...</p>
         ) : (
           <Row className="justify-content-center">
             {popularGames.map((game) => (
-              <Col key={game.id} md={6} sm={12} lg={2} className="mb-4">
+              <Col as="article" key={game.id} md={6} sm={12} lg={2} className="mb-4">
                 <GameCard game={game} />
               </Col>
             ))}

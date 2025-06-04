@@ -33,6 +33,8 @@ security:
         - { path: ^/api/register, roles: PUBLIC_ACCESS }
         - { path: ^/api/photos, roles: PUBLIC_ACCESS }
         - { path: ^/api/forgot-password, roles: PUBLIC_ACCESS }
+        - { path: ^/api/topic/list, roles: PUBLIC_ACCESS }
+        - { path: '^/api/topic/\d+', roles: PUBLIC_ACCESS }
         - { path: ^/api/reset-password, roles: PUBLIC_ACCESS }
         - { path: ^/api/chatbot, roles: IS_AUTHENTICATED_FULLY  }
         - { path: ^/api/upload-photo, roles: IS_AUTHENTICATED_FULLY }

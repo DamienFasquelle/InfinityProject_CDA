@@ -76,6 +76,7 @@ const Header = () => {
           <Navbar.Collapse id="navbar-nav" className="align-items-center">
             <Nav className="me-auto">
               <Nav.Link as={Link} to="/games">Bibliothèque de jeux</Nav.Link>
+              <Nav.Link as={Link} to="/forum">Forum</Nav.Link>
               {isAdmin && <Nav.Link as={Link} to="/admin">Administration</Nav.Link>}
               {isUser && !isAdmin && (
                 <>

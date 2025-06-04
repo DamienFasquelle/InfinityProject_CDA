@@ -10,6 +10,7 @@ export const FavoritesProvider = ({ children }) => {
   const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
+      const API_URL = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem('token');
 
     if (isAuthenticated && token) {

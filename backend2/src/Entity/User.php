@@ -36,26 +36,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 65)]
     private ?string $username = null;
 
-    /**
-     * @var Collection<int, Comment>
-     */
     #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'idUser')]
     private Collection $comments;
 
-    /**
-     * @var Collection<int, FavoriteGame>
-     */
     #[ORM\OneToMany(targetEntity: FavoriteGame::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
     private Collection $favoriteGames;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
-private ?string $photo = null;
+    private ?string $photo = null;
 
+    #[ORM\OneToMany(mappedBy: 'idUser', targetEntity: Topic::class)]
+    private Collection $topics;
+
+    #[ORM\OneToMany(mappedBy: 'idUser', targetEntity: Post::class)]
+    private Collection $posts;
 
     public function __construct()
     {
         $this->comments = new ArrayCollection();
         $this->favoriteGames = new ArrayCollection();
+        $this->topics = new ArrayCollection();
+        $this->posts = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -71,36 +72,27 @@ private ?string $photo = null;
     public function setEmail(string $email): static
     {
         $this->email = $email;
-
         return $this;
     }
 
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
     public function getUserIdentifier(): string
     {
         return (string) $this->email;
     }
 
     /**
-     * @see UserInterface
      * @return list<string>
      */
     public function getRoles(): array
-{
-    $roles = $this->roles;
+    {
+        $roles = $this->roles;
 
-    // Ne pas ajouter ROLE_USER si ce rôle est déjà attribué
-    if (!in_array('ROLE_USER', $roles)) {
-        $roles[] = 'ROLE_USER';
+        if (!in_array('ROLE_USER', $roles)) {
+            $roles[] = 'ROLE_USER';
+        }
+
+        return array_unique($roles);
     }
-
-    return array_unique($roles);
-}
-
 
     /**
      * @param list<string> $roles
@@ -108,13 +100,9 @@ private ?string $photo = null;
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
-
         return $this;
     }
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
     public function getPassword(): ?string
     {
         return $this->password;
@@ -123,16 +111,12 @@ private ?string $photo = null;
     public function setPassword(string $password): static
     {
         $this->password = $password;
-
         return $this;
     }
 
-    /**
-     * @see UserInterface
-     */
     public function eraseCredentials(): void
     {
-        // $this->plainPassword = null;
+        // Rien à effacer pour le moment
     }
 
     public function getUsername(): ?string
@@ -143,7 +127,6 @@ private ?string $photo = null;
     public function setUsername(string $username): static
     {
         $this->username = $username;
-
         return $this;
     }
 
@@ -168,7 +151,6 @@ private ?string $photo = null;
     public function removeComment(Comment $comment): static
     {
         if ($this->comments->removeElement($comment)) {
-            // set the owning side to null (unless already changed)
             if ($comment->getIdUser() === $this) {
                 $comment->setIdUser(null);
             }
@@ -198,7 +180,6 @@ private ?string $photo = null;
     public function removeFavoriteGame(FavoriteGame $favoriteGame): static
     {
         if ($this->favoriteGames->removeElement($favoriteGame)) {
-            // set the owning side to null (unless already changed)
             if ($favoriteGame->getUser() === $this) {
                 $favoriteGame->setUser(null);
             }
@@ -207,14 +188,72 @@ private ?string $photo = null;
         return $this;
     }
 
-public function getPhoto(): ?string
-{
-    return $this->photo;
-}
+    public function getPhoto(): ?string
+    {
+        return $this->photo;
+    }
 
-public function setPhoto(?string $photo): static
-{
-    $this->photo = $photo;
-    return $this;
-}
+    public function setPhoto(?string $photo): static
+    {
+        $this->photo = $photo;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Topic>
+     */
+    public function getTopics(): Collection
+    {
+        return $this->topics;
+    }
+
+    public function addTopic(Topic $topic): static
+    {
+        if (!$this->topics->contains($topic)) {
+            $this->topics->add($topic);
+            $topic->setIdUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTopic(Topic $topic): static
+    {
+        if ($this->topics->removeElement($topic)) {
+            if ($topic->getIdUser() === $this) {
+                $topic->setIdUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Post>
+     */
+    public function getPosts(): Collection
+    {
+        return $this->posts;
+    }
+
+    public function addPost(Post $post): static
+    {
+        if (!$this->posts->contains($post)) {
+            $this->posts->add($post);
+            $post->setIdUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removePost(Post $post): static
+    {
+        if ($this->posts->removeElement($post)) {
+            if ($post->getIdUser() === $this) {
+                $post->setIdUser(null);
+            }
+        }
+
+        return $this;
+    }
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Row, Col, Form, Card } from 'react-bootstrap';
+import { Button, Row, Col, Form, Container } from 'react-bootstrap';
 import { fetchPlatforms, fetchGenres, fetchGames, fetchTags } from '../services/rawgService';
 import GameCard from '../components/GameCard';
 
@@ -8,7 +8,7 @@ const Games = () => {
   const [platforms, setPlatforms] = useState([]);
   const [genres, setGenres] = useState([]);
   const [tags, setTags] = useState([]);
-  
+
   const [filters, setFilters] = useState({
     platform: '',
     genre: '',
@@ -22,7 +22,6 @@ const Games = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  // Chargement des filtres (plateformes, genres, tags)
   useEffect(() => {
     const fetchFilters = async () => {
       try {
@@ -38,11 +37,9 @@ const Games = () => {
         console.error("Erreur lors du chargement des filtres :", error);
       }
     };
-
     fetchFilters();
   }, []);
 
-  // Chargement des jeux (paginés + filtres)
   useEffect(() => {
     const loadGames = async () => {
       setLoading(true);
@@ -96,107 +93,116 @@ const Games = () => {
   };
 
   return (
-    <section className="games-container">
-      <div className="filter-section p-4 mb-5 text-light bg-dark shadow-lg border-0">
-        <h3 className="text-center text-primary mb-4">🎮 Filtrer les jeux</h3>
-        <Row className="gy-3 justify-content-center">
-          <Col md={2} sm={6} xs={12}>
-            <Form.Group controlId="platform">
-              <Form.Label>Plateforme</Form.Label>
-              <Form.Select name="platform" value={pendingFilters.platform} onChange={handleFilterChange}>
-                <option value="">Toutes</option>
-                {platforms.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
+    <main className="container">
+      <section className="intro text-center my-2">
+          <h1>Bibliothèque de jeux</h1>
+        <p className="intro-text">
+            Découvrez des milliers de jeux vidéo selon vos préférences. Utilisez les filtres ci-dessous pour affiner votre recherche.
+          </p>
+      </section>
+
+      {/* Filtres + jeux */}
+      <section className="container-fluid my-4">
+        <Row>
+          {/* Colonne filtres */}
+          <aside className="col-md-3 mb-4"  style={{ position: 'sticky', top: '80px', alignSelf: 'start' }}>
+            <section className="p-4 bg-dark text-light rounded shadow">
+              <h2 className="text-primary mb-4 text-center">Filtres</h2>
+              <Form>
+                <Form.Group className="mb-3" controlId="platform">
+                  <Form.Label>Plateforme</Form.Label>
+                  <Form.Select name="platform" value={pendingFilters.platform} onChange={handleFilterChange}>
+                    <option value="">Toutes</option>
+                    {platforms.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+
+                <Form.Group className="mb-3" controlId="genre">
+                  <Form.Label>Genre</Form.Label>
+                  <Form.Select name="genre" value={pendingFilters.genre} onChange={handleFilterChange}>
+                    <option value="">Tous</option>
+                    {genres.map((g) => (
+                      <option key={g.id} value={g.id}>{g.name}</option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+
+                <Form.Group className="mb-3" controlId="tag">
+                  <Form.Label>Tag</Form.Label>
+                  <Form.Select name="tag" value={pendingFilters.tag} onChange={handleFilterChange}>
+                    <option value="">Tous</option>
+                    {tags.map((t) => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+
+                <Form.Group className="mb-3" controlId="rating">
+                  <Form.Label>Évaluation</Form.Label>
+                  <Form.Select name="rating" value={pendingFilters.rating} onChange={handleFilterChange}>
+                    <option value="">Toutes</option>
+                    <option value="4">4+</option>
+                    <option value="3">3+</option>
+                    <option value="2">2+</option>
+                    <option value="1">1+</option>
+                  </Form.Select>
+                </Form.Group>
+
+                <div className="d-flex justify-content-center gap-2">
+                  <Button className="btn-primary" onClick={applyFilters}>
+                    Appliquer
+                  </Button>
+                  <Button className="btn-secondary" onClick={handleResetFilters}>
+                    Réinitialiser
+                  </Button>
+                </div>
+              </Form>
+            </section>
+          </aside>
+
+          {/* Colonne jeux */}
+          <section className="col-md-9 bg-dark text-light p-4 rounded shadow">
+            <h2 className="text-primary mb-4 text-center">Jeux disponibles</h2>
+            {loading ? (
+              <p className="text-center">Chargement des jeux...</p>
+            ) : (
+              <Row>
+                {games.map((game) => (
+                  <article key={game.id} className="col-md-4 col-sm-6 col-lg-3 mb-4 fadeInUp">
+                    <GameCard game={game} />
+                  </article>
                 ))}
-              </Form.Select>
-            </Form.Group>
-          </Col>
+              </Row>
+            )}
 
-          <Col md={2} sm={6} xs={12}>
-            <Form.Group controlId="genre">
-              <Form.Label>Genre</Form.Label>
-              <Form.Select name="genre" value={pendingFilters.genre} onChange={handleFilterChange}>
-                <option value="">Tous</option>
-                {genres.map((g) => (
-                  <option key={g.id} value={g.id}>{g.name}</option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-          </Col>
-
-          <Col md={2} sm={6} xs={12}>
-            <Form.Group controlId="tag">
-              <Form.Label>Tag</Form.Label>
-              <Form.Select name="tag" value={pendingFilters.tag} onChange={handleFilterChange}>
-                <option value="">Tous</option>
-                {tags.map((t) => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-          </Col>
-
-          <Col md={2} sm={6} xs={12}>
-            <Form.Group controlId="rating">
-              <Form.Label>Évaluation</Form.Label>
-              <Form.Select name="rating" value={pendingFilters.rating} onChange={handleFilterChange}>
-                <option value="">Toutes</option>
-                <option value="4">4+</option>
-                <option value="3">3+</option>
-                <option value="2">2+</option>
-                <option value="1">1+</option>
-              </Form.Select>
-            </Form.Group>
-          </Col>
-
-          <Col xs={12} className="text-center mt-3">
-            <Button className="btn-primary me-2" onClick={applyFilters}>
-              Appliquer les filtres
-            </Button>
-            <Button className="btn-secondary" onClick={handleResetFilters}>
-              Réinitialiser les filtres
-            </Button>
-          </Col>
+            {/* Pagination */}
+            {!loading && (
+              <div className="text-center mt-3">
+                <Button
+                  variant="secondary"
+                  onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={page === 1}
+                  className="me-2"
+                >
+                  ⬅ Précédent
+                </Button>
+                <span>{page} / {totalPages}</span>
+                <Button
+                  variant="secondary"
+                  onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={page === totalPages}
+                  className="ms-2"
+                >
+                  Suivant ➡
+                </Button>
+              </div>
+            )}
+          </section>
         </Row>
-      </div>
-
-      <div className="container text-light">
-        <h2 className="text-center text-primary mb-4">🎲 Jeux disponibles</h2>
-        {loading ? (
-          <p className="text-center">Chargement des jeux...</p>
-        ) : (
-          <>
-            <Row className="justify-content-center">
-              {games.map((game) => (
-                <Col key={game.id} md={4} sm={6} lg={2} className="mb-4 fadeInUp">
-                  <GameCard game={game} />
-                </Col>
-              ))}
-            </Row>
-
-            <div className="text-center mt-4">
-              <Button
-                variant="secondary"
-                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-                disabled={page === 1}
-                className="me-2"
-              >
-                ⬅ Précédent
-              </Button>
-              <span className="text-light">{page} / {totalPages}</span>
-              <Button
-                variant="secondary"
-                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-                disabled={page === totalPages}
-                className="ms-2"
-              >
-                Suivant ➡
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
-    </section>
+      </section>
+    </main>
   );
 };
 

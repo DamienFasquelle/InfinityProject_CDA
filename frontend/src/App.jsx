@@ -19,6 +19,8 @@ import UserDashboard from "./pages/User/UserDashboard";
 import RecommandationGame from "./pages/RecommandationGame";
 import ScrollToTop from "./components/ScrollToTop";
 import SimilarGamesPage from "./pages/User/SimilarGamesPage";
+import Forum from "./pages/Forum";
+import TopicDetail from "./pages/TopicDetail";
 
 const App = () => {
   const { isAuthenticated } = useContext(AuthContext);
@@ -49,6 +51,8 @@ const App = () => {
         <Route path="/games" element={<Games />} />
         <Route path="/gamepage/:id" element={<GamePage />} />
         <Route path="/about" element={<About />} />
+        <Route path="/forum" element={<Forum />} />
+        <Route path="/forum/topic/:id" element={<TopicDetail />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/contact" element={<Contact />} />
 

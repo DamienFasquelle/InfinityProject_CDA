@@ -34,6 +34,8 @@ const RecommandationGame = ({ games }) => {
   }, [games]);
 
   return (
+      <main className="container">
+      <section className="intro text-center my-2">
     <div className="recommendation-container fadeInUp">
       <h2 className="recommendation-title">🎮 Jeux Recommandés</h2>
 
@@ -45,6 +47,7 @@ const RecommandationGame = ({ games }) => {
       )}
 
       {error && <Alert variant="danger">{error}</Alert>}
+      
 
       <Row className="justify-content-center">
         {detailedGames.length > 0 ? (
@@ -69,6 +72,8 @@ const RecommandationGame = ({ games }) => {
         )}
       </Row>
     </div>
+      </section>
+      </main>
   );
 };
 
