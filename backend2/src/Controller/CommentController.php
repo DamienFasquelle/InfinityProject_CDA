@@ -43,8 +43,11 @@ class CommentController extends AbstractController
     'content' => $comment->getContent(),
     'rating' => $comment->getRating(),
     'created_at' => $comment->getCreatedAt()->format('Y-m-d H:i:s'),
-   'userId' => $comment->getIdUser()->getId(),
-    'user' => $comment->getIdUser()->getUsername(),
+   'user' => [
+                    'id' => $comment->getIdUser()?->getId(),
+                    'username' => $comment->getIdUser()?->getUsername(),
+                    'photo' => $comment->getIdUser()?->getPhoto(),
+                ],
     'gameId' => $data['gameId'],
 ], 201);
 
@@ -82,8 +85,11 @@ class CommentController extends AbstractController
     'rating' => $comment->getRating(),
     'created_at' => $comment->getCreatedAt()->format('Y-m-d H:i:s'),
     'updated_at' => $comment->getUpdatedAt()->format('Y-m-d H:i:s'),
-    'userId' => $comment->getIdUser()->getId(),
-    'user' => $comment->getIdUser()->getUsername(),
+    'user' => [
+                    'id' => $comment->getIdUser()?->getId(),
+                    'username' => $comment->getIdUser()?->getUsername(),
+                    'photo' => $comment->getIdUser()?->getPhoto(),
+                ],
     'gameId' => $comment->getIdGames(),
 ]);
 
@@ -113,7 +119,7 @@ public function getCommentsByGame(int $gameId, CommentRepository $commentReposit
 {
     $comments = $commentRepository->findBy(['idGames' => $gameId]);
 
-    // Si aucun commentaire trouvé, on retourne un tableau vide (et pas une erreur 404)
+
     if (!$comments) {
         return $this->json([]);  // tableau vide
     }
@@ -124,8 +130,11 @@ public function getCommentsByGame(int $gameId, CommentRepository $commentReposit
             'content' => $comment->getContent(),
             'rating' => $comment->getRating(),
             'created_at' => $comment->getCreatedAt()->format('Y-m-d H:i:s'),
-            'userId' => $comment->getIdUser()->getId(),
-            'user' => $comment->getIdUser()->getUsername(),
+            'user' => [
+                    'id' => $comment->getIdUser()?->getId(),
+                    'username' => $comment->getIdUser()?->getUsername(),
+                    'photo' => $comment->getIdUser()?->getPhoto(),
+                ],
         ];
     }, $comments);
 

@@ -1,5 +1,13 @@
 const API_URL = process.env.REACT_APP_API_URL;
 
+export const fetchGenres = async () => {
+  const response = await fetch(`${process.env.REACT_APP_API_URL}/api/genres/list`);
+  if (!response.ok) {
+    throw new Error('Erreur lors du chargement des genres');
+  }
+  return response.json();
+};
+
 
 export async function fetchAllTopics() {
   const res = await fetch(`${API_URL}/api/topic/list`);
@@ -8,23 +16,40 @@ export async function fetchAllTopics() {
 }
 
 export async function createTopic(topicData) {
-  const token = localStorage.getItem('token'); // Récupération du token d'auth
-  const res = await fetch(`${API_URL}/api/topic/create`, {  // /api/topic/create comme dans ton backend
+  const token = localStorage.getItem('token');
+
+  const formData = new FormData();
+  formData.append('title', topicData.title);
+  formData.append('genre_id', topicData.genre || '');
+  formData.append('description', topicData.description || '');
+  if (topicData.image) {
+    formData.append('image', topicData.image);
+  }
+
+  const res = await fetch(`${API_URL}/api/topic/create`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({
-      title: topicData.title, // Ton backend attend uniquement le titre
-    }),
+    body: formData,
   });
+console.log( formData)
   if (!res.ok) {
-    // Pour gérer les erreurs, on peut essayer de récupérer le message retourné par l'API
     const errorData = await res.json().catch(() => null);
     throw new Error(
       errorData?.error || 'Échec de la création du topic'
     );
   }
+
   return await res.json();
 }
+
+export const fetchTopicById = async (id) => {
+  const res = await fetch(`${process.env.REACT_APP_API_URL}/api/topic/${id}`);
+  if (!res.ok) {
+    const errData = await res.json();
+    throw new Error(errData.error || 'Erreur lors du chargement du topic');
+  }
+  return res.json();
+};
+

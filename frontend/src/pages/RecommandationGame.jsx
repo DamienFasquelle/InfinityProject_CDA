@@ -21,7 +21,9 @@ const RecommandationGame = ({ games }) => {
         );
         setDetailedGames(gameDetails.filter((game) => game !== null));
       } catch (err) {
-        setError("❌ Une erreur est survenue lors de la récupération des jeux.");
+        setError(
+          "❌ Une erreur est survenue lors de la récupération des jeux."
+        );
         console.error(err);
       } finally {
         setLoading(false);
@@ -34,46 +36,45 @@ const RecommandationGame = ({ games }) => {
   }, [games]);
 
   return (
-      <main className="container">
+    <main className="container">
       <section className="intro text-center my-2">
-    <div className="recommendation-container fadeInUp">
-      <h2 className="recommendation-title">🎮 Jeux Recommandés</h2>
+        <div className="recommendation-container fadeInUp">
+          <h2 className="recommendation-title">🎮 Jeux Recommandés</h2>
 
-      {loading && (
-        <div className="text-center my-5">
-          <Spinner animation="border" variant="info" />
-          <p className="mt-3">Chargement des jeux en cours...</p>
-        </div>
-      )}
-
-      {error && <Alert variant="danger">{error}</Alert>}
-      
-
-      <Row className="justify-content-center">
-        {detailedGames.length > 0 ? (
-          detailedGames.map((game, index) => (
-            <Col
-              key={game.id}
-              md={4}
-              sm={6}
-              lg={3}
-              className="mb-4 animated-card"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <GameCard game={game} />
-            </Col>
-          ))
-        ) : (
-          !loading && (
-            <div className="no-recommendation text-center mt-4">
-              <p>Les jeux recommandés par le chatbot seront affichés ici.</p>
+          {loading && (
+            <div className="text-center my-5">
+              <Spinner animation="border" variant="info" />
+              <p className="mt-3">Chargement des jeux en cours...</p>
             </div>
-          )
-        )}
-      </Row>
-    </div>
+          )}
+
+          {error && <Alert variant="danger">{error}</Alert>}
+
+          <Row className="justify-content-center">
+            {detailedGames.length > 0
+              ? detailedGames.map((game, index) => (
+                  <Col
+                    key={game.id}
+                    md={4}
+                    sm={6}
+                    lg={3}
+                    className="mb-4 animated-card"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
+                    <GameCard game={game} />
+                  </Col>
+                ))
+              : !loading && (
+                  <div className="no-recommendation text-center mt-4">
+                    <p>
+                      Les jeux recommandés par le chatbot seront affichés ici.
+                    </p>
+                  </div>
+                )}
+          </Row>
+        </div>
       </section>
-      </main>
+    </main>
   );
 };
 

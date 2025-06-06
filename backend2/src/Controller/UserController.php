@@ -108,7 +108,11 @@ class UserController extends AbstractController
 
         $commentsData = array_map(function ($comment) {
             return [
-                'id' => $comment->getId(),
+                'user' => [
+                    'id' => $comment->getIdUser()?->getId(),
+                    'username' => $comment->getIdUser()?->getUsername(),
+                    'photo' => $comment->getIdUser()?->getPhoto(),
+                ],
                 'content' => $comment->getContent(),
                 'rating' => $comment->getRating(),
                 'created_at' => $comment->getCreatedAt()->format('Y-m-d H:i:s'),

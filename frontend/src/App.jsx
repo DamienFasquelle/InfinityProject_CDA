@@ -19,8 +19,8 @@ import UserDashboard from "./pages/User/UserDashboard";
 import RecommandationGame from "./pages/RecommandationGame";
 import ScrollToTop from "./components/ScrollToTop";
 import SimilarGamesPage from "./pages/User/SimilarGamesPage";
-import Forum from "./pages/Forum";
-import TopicDetail from "./pages/TopicDetail";
+import Forum from "./pages/Forum/Forum";
+import TopicDetail from "./pages/Forum/TopicDetail";
 
 const App = () => {
   const { isAuthenticated } = useContext(AuthContext);

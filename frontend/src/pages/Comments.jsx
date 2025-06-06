@@ -2,8 +2,9 @@ import React, { useContext, useState } from "react";
 import { Form, Button } from "react-bootstrap";
 import { jwtDecode } from "jwt-decode";
 import { AuthContext } from "../providers/AuthProvider";
+import Avatar from "../components/Avatar";
 
-const Comments = ({ comments, gameId, onCommentAdded, onCommentDeleted, onCommentEdited }) => {
+const Comments = ({ comments, gameId }) => {
   const { isAuthenticated } = useContext(AuthContext);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -87,11 +88,7 @@ const Comments = ({ comments, gameId, onCommentAdded, onCommentDeleted, onCommen
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          content,
-          rating,
-          gameId,
-        }),
+        body: JSON.stringify({ content, rating, gameId }),
       });
 
       if (res.ok) {
@@ -105,10 +102,7 @@ const Comments = ({ comments, gameId, onCommentAdded, onCommentDeleted, onCommen
     }
   };
 
-  const startEditing = (commentId) => {
-    setIsEditing(commentId);
-  };
-
+  const startEditing = (commentId) => setIsEditing(commentId);
   const cancelEditing = () => {
     setIsEditing(null);
     setError("");
@@ -134,12 +128,7 @@ const Comments = ({ comments, gameId, onCommentAdded, onCommentDeleted, onCommen
                     className="mb-2"
                     required
                   />
-                  <Form.Select
-                    name="rating"
-                    defaultValue={comment.rating}
-                    className="mb-2"
-                    required
-                  >
+                  <Form.Select name="rating" defaultValue={comment.rating} className="mb-2" required>
                     {[1, 2, 3, 4, 5].map((r) => (
                       <option key={r} value={r}>{r}</option>
                     ))}
@@ -153,24 +142,27 @@ const Comments = ({ comments, gameId, onCommentAdded, onCommentDeleted, onCommen
                 </Form>
               ) : (
                 <>
-                  <p><strong>{comment.user}</strong> - {new Date(comment.created_at).toLocaleString()}</p>
+                  <div className="d-flex align-items-center mb-2">
+                    <Avatar
+                      username={comment.user?.username}
+                      photo={comment.user?.photo ? `${API_URL}/uploads/user_photos/${comment.user.photo}` : null}
+                      size={30}
+                    />
+                    <div className="ms-2">
+                      <strong>{comment.user?.username}</strong>
+                      <div className="text-muted" style={{ fontSize: "0.8em" }}>
+                        {new Date(comment.created_at).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
                   <p>{comment.content}</p>
                   <p>Note : {comment.rating} / 5</p>
-                  {(comment.userId === userId || isAdminUser) && userId && (
+                  {(comment.user?.id === userId || isAdminUser) && (
                     <div>
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        className="me-2"
-                        onClick={() => startEditing(comment.id)}
-                      >
+                      <Button variant="outline-primary" size="sm" className="me-2" onClick={() => startEditing(comment.id)}>
                         Modifier
                       </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={() => handleDeleteComment(comment.id)}
-                      >
+                      <Button variant="outline-danger" size="sm" onClick={() => handleDeleteComment(comment.id)}>
                         Supprimer
                       </Button>
                     </div>
@@ -190,20 +182,11 @@ const Comments = ({ comments, gameId, onCommentAdded, onCommentDeleted, onCommen
           <Form onSubmit={handleNewCommentSubmit}>
             <Form.Group controlId="content" className="mb-3">
               <Form.Label>Votre commentaire</Form.Label>
-              <Form.Control
-                as="textarea"
-                name="content"
-                rows={3}
-                required
-              />
+              <Form.Control as="textarea" name="content" rows={3} required />
             </Form.Group>
             <Form.Group controlId="rating" className="mb-3">
               <Form.Label>Note</Form.Label>
-              <Form.Select
-                name="rating"
-                defaultValue={1}
-                required
-              >
+              <Form.Select name="rating" defaultValue={1} required>
                 {[1, 2, 3, 4, 5].map((r) => (
                   <option key={r} value={r}>{r}</option>
                 ))}
