@@ -14,6 +14,7 @@ const UserProfile = ({ userId }) => {
   const [uploadLoading, setUploadLoading] = useState(false);
   const [previewPic, setPreviewPic] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
 
   const token = localStorage.getItem('token');
@@ -53,6 +54,7 @@ const UserProfile = ({ userId }) => {
       },
       body: JSON.stringify(bodyData),
     });
+    
 
     if (res.ok) {
       setEditMode(false);
@@ -60,8 +62,11 @@ const UserProfile = ({ userId }) => {
       setNewPassword('');
       setSuccess('Profil mis à jour avec succès.');
       setUserData({ ...userData, ...bodyData });
+      setError(null);
     } else {
-      setSuccess('Erreur lors de la mise à jour.');
+      const errorData = await res.json();
+  setError(errorData.message || 'Erreur lors de la mise à jour.');
+  setSuccess(null);
     }
 
     setLoading(false);
@@ -95,6 +100,7 @@ const UserProfile = ({ userId }) => {
   ) : (
     <Card className="p-4 text-white" style={{ backgroundColor: '#1e1e1e', maxWidth: '600px', margin: '0 auto' }}>
       {success && <Alert variant="success">{success}</Alert>}
+      {error && <Alert variant="danger">{error}</Alert>}
 
       <div className="text-center position-relative mb-4">
         {profilePic ? (
@@ -107,7 +113,7 @@ const UserProfile = ({ userId }) => {
         )}
         <button
           className="btn btn-sm btn-info position-absolute"
-          style={{ bottom: 0, left: '50%', transform: 'translateX(-50%)', borderRadius: '50%' }}
+          style={{ bottom: 0, left: '57%', transform: 'translateX(-50%)', borderRadius: '50%' }}
           onClick={() => fileInputRef.current.click()}
           title="Changer la photo"
         >

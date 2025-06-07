@@ -45,7 +45,7 @@ const GameCard = ({ game }) => {
 
   return (
     <Card
-      className="game-card d-flex flex-column"
+      className="game-card d-flex flex-column card-hover"
       style={{ height: '480px', width: '100%', maxWidth: '300px', position: 'relative' }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}

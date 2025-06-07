@@ -4,6 +4,7 @@ import { Image } from 'react-bootstrap';
 import { getInitials, getAvatarColor } from '../utils/userHelpers';
 
 const Avatar = ({ username, photo, size = 50 }) => {
+  
   if (photo) {
     return (
       <Image

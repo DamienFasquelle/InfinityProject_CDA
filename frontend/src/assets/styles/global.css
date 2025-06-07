@@ -74,7 +74,7 @@ footer, .footer {
   color: var(--text-muted);
 }
 
-.card:hover {
+.card-hover:hover {
   transform: scale(1.03);
   transition: transform 0.3s ease;
   box-shadow: 0 8px 20px rgba(0, 255, 255, 0.3);
@@ -627,6 +627,13 @@ input:focus, select:focus, textarea:focus {
   font-style: italic;
   user-select: none;
 }
+
+.messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; 
+}
+
 
 /* Responsive */
 @media (max-width: 600px) {

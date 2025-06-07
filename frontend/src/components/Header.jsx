@@ -77,13 +77,13 @@ const Header = () => {
             <Nav className="me-auto">
               <Nav.Link as={Link} to="/games">Bibliothèque de jeux</Nav.Link>
               <Nav.Link as={Link} to="/forum">Forum</Nav.Link>
-              {isAdmin && <Nav.Link as={Link} to="/admin">Administration</Nav.Link>}
               {isUser && (
                 <>
                   <Nav.Link as={Link} to="/recommandation">Jeux recommandés</Nav.Link>
                   <Nav.Link as={Link} to="/similar-games">Jeux similaires</Nav.Link>
                 </>
               )}
+              {isAdmin && <Nav.Link as={Link} to="/admin" className="text-danger">Administration</Nav.Link>}
             </Nav>
 
             <div className="d-flex align-items-center">

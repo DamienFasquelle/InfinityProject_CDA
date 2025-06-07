@@ -17,7 +17,7 @@ const UserComments = ({ userId }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      setComments(data);
+      setComments(data.comments || []);
       setLoading(false);
     };
     fetchComments();

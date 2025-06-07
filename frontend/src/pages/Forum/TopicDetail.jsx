@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Alert, Spinner, Image, Row, Col } from 'react-bootstrap';
 import { AuthContext } from '../../providers/AuthProvider';
 import { FaComments, FaPaperPlane } from 'react-icons/fa';
@@ -129,7 +129,7 @@ const TopicDetail = () => {
                       <Avatar username={username} photo={photo} size={50} />
                       <div>
                         <div className="d-flex justify-content-between text-white small mb-1">
-                          <strong className="me-2">{username} le</strong>
+                          <strong className="me-2">{username} le</strong> à 
                           <time dateTime={msg.createdAt}>{new Date(msg.createdAt).toLocaleString()}</time>
                         </div>
                         <div className="comment-content">{msg.content}</div>
@@ -165,7 +165,8 @@ const TopicDetail = () => {
                 </button>
               </form>
             ) : (
-              <p className="fst-italic">Vous devez être connecté pour répondre.</p>
+              <p className="fst-italic">Vous devez être <Link to="/login" className="">connecté</Link> pour répondre.</p>
+            
             )}
           </div>
         </Col>
