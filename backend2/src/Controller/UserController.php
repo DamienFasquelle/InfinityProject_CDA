@@ -91,38 +91,41 @@ class UserController extends AbstractController
     }
 
     #[Route('/api/users/{userId}/comments', name: 'get_user_comments', methods: ['GET'])]
-    public function getUserComments(int $userId, UserRepository $userRepository): JsonResponse
-    {
+public function getUserComments(int $userId, UserRepository $userRepository): JsonResponse
+{
+    $user = $userRepository->find($userId);
 
-        $user = $userRepository->find($userId);
+    if (!$user) {
+        return $this->json(['message' => 'Utilisateur non trouvé.'], 404);
+    }
 
-        if (!$user) {
-            return $this->json(['message' => 'Utilisateur non trouvé.'], 404);
-        }
+    $comments = $user->getComments();
 
-        $comments = $user->getComments();
-
-        if ($comments->isEmpty()) {
-            return $this->json(['message' => 'Aucun commentaire trouvé pour cet utilisateur.'], 404);
-        }
-
+    $commentsData = [];
+    if (!$comments->isEmpty()) {
         $commentsData = array_map(function ($comment) {
             return [
-                'user' => [
-                    'id' => $comment->getIdUser()?->getId(),
-                    'username' => $comment->getIdUser()?->getUsername(),
-                    'photo' => $comment->getIdUser()?->getPhoto(),
-                ],
+                'id' => $comment->getId(),
                 'content' => $comment->getContent(),
                 'rating' => $comment->getRating(),
                 'created_at' => $comment->getCreatedAt()->format('Y-m-d H:i:s'),
-                'gameId' => $comment->getIdGames()
-                
+                'gameId' => $comment->getIdGames(),
             ];
         }, $comments->toArray());
-
-        return $this->json($commentsData);
     }
+
+    return $this->json([
+        'user' => [
+            'id' => $user->getId(),
+            'username' => $user->getUsername(),
+            'email' => $user->getEmail(),
+            'roles' => $user->getRoles(),
+            'photo' => $user->getPhoto(),
+        ],
+        'comments' => $commentsData,
+    ]);
+}
+
 
     #[Route('/api/users', name: 'create_user', methods: ['POST'])]
 public function createUser(Request $request, EntityManagerInterface $entityManager): JsonResponse

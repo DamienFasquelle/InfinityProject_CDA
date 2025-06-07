@@ -1,43 +1,99 @@
-import React, { useEffect, useState } from 'react';
-import { Row, Col, Button } from 'react-bootstrap';
-import { useGames } from '../providers/GameProvider';
+import React, { useEffect, useState, useRef } from 'react';
+import { Container, Row, Col, Button, Spinner } from 'react-bootstrap';
 import GameCard from '../components/GameCard';
-import { fetchRecentGames } from '../services/rawgService';
+import { fetchRecentGames, fetchPopularGames } from '../services/rawgService';
 
 const Home = () => {
-  const { games, loading: loadingPopular } = useGames();
+  const recentRef = useRef(null);
+  const popularRef = useRef(null);
+
+  // 🔄 --- Récemment Sortis ---
   const [recentGames, setRecentGames] = useState([]);
-  const [loadingRecent, setLoadingRecent] = useState(true);
   const [recentPage, setRecentPage] = useState(1);
   const [recentTotalPages, setRecentTotalPages] = useState(1);
+  const [loadingRecent, setLoadingRecent] = useState(false);
 
+  // 🌟 --- Populaires ---
+  const [popularGames, setPopularGames] = useState([]);
+  const [popularPage, setPopularPage] = useState(1);
+  const [popularTotalPages, setPopularTotalPages] = useState(1);
+  const [loadingPopular, setLoadingPopular] = useState(false);
+
+  // 🔽 Scroll vers section
+  const scrollToRef = (ref) => {
+    if (ref.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // 🎮 Récupérer les jeux récents
   useEffect(() => {
-    const getRecentGames = async () => {
+    const loadRecent = async () => {
       setLoadingRecent(true);
-      try {
-        const result = await fetchRecentGames({
-          dateFrom: '2023-01-01',
-          page: recentPage,
-          pageSize: 12,
-        });
-        setRecentGames(result.results);
-        setRecentTotalPages(Math.ceil(result.count / 12));
-      } catch (error) {
-        console.error("Erreur lors de la récupération des jeux récents", error);
-      } finally {
-        setLoadingRecent(false);
+      const data = await fetchRecentGames({
+        dateFrom: '2023-01-01',
+        page: recentPage,
+        pageSize: 12,
+      });
+
+      if (data) {
+        setRecentGames(data.results);
+        setRecentTotalPages(Math.ceil(data.count / 12));
       }
+
+      setLoadingRecent(false);
     };
 
-    getRecentGames();
+    loadRecent();
   }, [recentPage]);
 
-  const popularGames = Array.isArray(games)
-    ? games.filter((game) => game.rating >= 4).slice(0, 12)
-    : [];
+  // ⭐ Récupérer les jeux populaires
+  useEffect(() => {
+    const loadPopular = async () => {
+      setLoadingPopular(true);
+      const data = await fetchPopularGames({
+        page: popularPage,
+        pageSize: 12,
+      });
+
+      if (data) {
+        setPopularGames(data.results);
+        setPopularTotalPages(Math.ceil(data.count / 12));
+      }
+
+      setLoadingPopular(false);
+    };
+
+    loadPopular();
+  }, [popularPage]);
+
+  // === UI Pagination ===
+  const Pagination = ({ page, totalPages, onPrev, onNext, loading }) => (
+    <div className="text-center my-3">
+      <Button
+        variant="outline-light"
+        disabled={page === 1 || loading}
+        onClick={onPrev}
+        className="me-2"
+      >
+        ⬅ Précédent
+      </Button>
+      <span>{page} / {totalPages}</span>
+      <Button
+        variant="outline-light"
+        disabled={page === totalPages || loading}
+        onClick={onNext}
+        className="ms-2"
+      >
+        Suivant ➡
+      </Button>
+    </div>
+  );
 
   return (
-    <main className="container">
+    <main>
+    <Container className="my-5">
+      {/* 🎮 Section Jeux Récents */}
       <section className="intro text-center my-2">
         <h1>Bienvenue sur Infinity Games</h1>
         <p className="intro-text">
@@ -65,64 +121,71 @@ const Home = () => {
           </Col>
         </Row>
       </section>
-
-      {/* Jeux récents */}
-      <section className="recent-games my-5" aria-labelledby="recent-title">
-        <h2 id="recent-title">Jeux Récemment Sortis</h2>
-
+      <section ref={recentRef}>
+        <h2 className="mb-4">Jeux Récemment Sortis</h2>
         {loadingRecent ? (
-          <p>Chargement des jeux récemment sortis...</p>
+          <div className="text-center my-5">
+            <Spinner animation="border" variant="light" />
+          </div>
         ) : (
           <>
-            <Row className="justify-content-center">
+            <Row>
               {recentGames.map((game) => (
-                <Col as="article" key={game.id} md={6} sm={12} lg={2} className="mb-4">
+                <Col key={game.id} lg={2} md={4} sm={6} className="mb-4">
                   <GameCard game={game} />
                 </Col>
               ))}
             </Row>
-
-            <nav className="text-center mt-3" aria-label="Pagination des jeux récents">
-              <Button
-                onClick={() => setRecentPage((p) => Math.max(p - 1, 1))}
-                disabled={recentPage === 1}
-                className="me-2"
-                variant="outline-light"
-              >
-                ⬅ Précédent
-              </Button>
-              <span className="text-light">
-                {recentPage} / {recentTotalPages}
-              </span>
-              <Button
-                onClick={() => setRecentPage((p) => Math.min(p + 1, recentTotalPages))}
-                disabled={recentPage === recentTotalPages}
-                className="ms-2"
-                variant="outline-light"
-              >
-                Suivant ➡
-              </Button>
-            </nav>
+            <Pagination
+              page={recentPage}
+              totalPages={recentTotalPages}
+              onPrev={() => {
+                setRecentPage((p) => p - 1);
+                scrollToRef(recentRef);
+              }}
+              onNext={() => {
+                setRecentPage((p) => p + 1);
+                scrollToRef(recentRef);
+              }}
+              loading={loadingRecent}
+            />
           </>
         )}
       </section>
 
-      {/* Jeux populaires */}
-      <section className="popular-games my-5" aria-labelledby="popular-title">
-        <h2 id="popular-title">Jeux Populaires</h2>
-
+      {/* ⭐ Section Jeux Populaires */}
+      <section className="mt-5" ref={popularRef}>
+        <h2 className="mb-4">Jeux Populaires</h2>
         {loadingPopular ? (
-          <p>Chargement des jeux populaires...</p>
+          <div className="text-center my-5">
+            <Spinner animation="border" variant="light" />
+          </div>
         ) : (
-          <Row className="justify-content-center">
-            {popularGames.map((game) => (
-              <Col as="article" key={game.id} md={6} sm={12} lg={2} className="mb-4">
-                <GameCard game={game} />
-              </Col>
-            ))}
-          </Row>
+          <>
+            <Row>
+              {popularGames.map((game) => (
+                <Col key={game.id} lg={2} md={4} sm={6} className="mb-4">
+                  <GameCard game={game} />
+                </Col>
+              ))}
+            </Row>
+            <Pagination
+              page={popularPage}
+              totalPages={popularTotalPages}
+              onPrev={() => {
+                setPopularPage((p) => p - 1);
+                scrollToRef(popularRef);
+              }}
+              onNext={() => {
+                setPopularPage((p) => p + 1);
+                scrollToRef(popularRef);
+              }}
+              loading={loadingPopular}
+            />
+          </>
         )}
       </section>
+    </Container>
     </main>
   );
 };

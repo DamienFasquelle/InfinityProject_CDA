@@ -1,13 +1,12 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import { Alert, Spinner, Image } from 'react-bootstrap';
+import { Alert, Spinner, Image, Row, Col } from 'react-bootstrap';
 import { AuthContext } from '../../providers/AuthProvider';
-import { FaComments, FaUserCircle, FaCalendarAlt, FaPaperPlane } from 'react-icons/fa';
+import { FaComments, FaPaperPlane } from 'react-icons/fa';
 import Avatar from '../../components/Avatar';
 import { fetchTopicById } from '../../services/forumService';
 
 const API_URL = process.env.REACT_APP_API_URL;
-
 
 const TopicDetail = () => {
   const { id } = useParams();
@@ -20,18 +19,18 @@ const TopicDetail = () => {
   const [submitError, setSubmitError] = useState(null);
 
   useEffect(() => {
-  const fetch = async () => {
-    try {
-      const data = await fetchTopicById(id);
-      setTopic(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-  fetch();
-}, [id]);
+    const fetch = async () => {
+      try {
+        const data = await fetchTopicById(id);
+        setTopic(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetch();
+  }, [id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -68,159 +67,109 @@ const TopicDetail = () => {
     }
   };
 
-  if (loading)
-    return (
-      <div style={{ padding: 20, textAlign: 'center' }}>
-        <Spinner animation="border" />
-      </div>
-    );
+  if (loading) return <div className="text-center py-5"><Spinner animation="border" variant="info" /></div>;
+  if (error) return <Alert variant="danger" className="mt-4">{error}</Alert>;
+  if (!topic) return <Alert variant="warning" className="mt-4">Topic introuvable.</Alert>;
 
-  if (error)
-    return (
-      <div style={{ padding: 20 }}>
-        <Alert variant="danger">{error}</Alert>
-      </div>
-    );
-
-  if (!topic)
-    return (
-      <div style={{ padding: 20 }}>
-        <Alert variant="warning">Topic introuvable.</Alert>
-      </div>
-    );
+  const topicAuthorPhoto = topic.user?.photo
+    ? `${API_URL}/uploads/user_photos/${topic.user.photo}`
+    : null;
 
   return (
-    <div className="topic-detail-container" style={{ maxWidth: 900, margin: '0 auto', padding: 20 }}>
-      <header style={{ marginBottom: 30 }}>
-        <h2 style={{ fontWeight: '700' }}>{topic.title}</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 15, color: '#6c757d', fontSize: 14 }}>
-          <FaUserCircle />
-          <span>Créé par <strong>{topic.user?.username || 'Utilisateur inconnu'}</strong></span>
-          <FaCalendarAlt />
-          <time dateTime={topic.createdAt}>
-            {new Date(topic.createdAt).toLocaleString()}
-          </time>
-        </div>
-        {topic.image && (
-          <Image
-            src={`${API_URL}${topic.image}`}
-            alt={`Image du topic ${topic.title}`}
-            fluid
-            rounded
-            style={{ marginTop: 20, maxHeight: 300, objectFit: 'cover', width: '100%' }}
-          />
-        )}
-        {topic.description && (
-          <p style={{ marginTop: 20, fontSize: '1.1rem', lineHeight: 1.5, color: '#f8f9fa' }}>
-            {topic.description}
-          </p>
-        )}
-        <hr style={{ marginTop: 40, marginBottom: 30, borderColor: '#444' }} />
-      </header>
-
-      <section>
-        <h4 style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <FaComments /> Messages ({topic.messages?.length || 0})
-        </h4>
-
-        {(!topic.messages || topic.messages.length === 0) && (
-          <p style={{ fontStyle: 'italic', color: '#adb5bd' }}>Aucun message pour le moment.</p>
-        )}
-
-        <div className="messages-list" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {topic.messages?.map((msg) => {
-            const username = msg.user?.username || 'Utilisateur inconnu';
-            const photo = msg.user?.photo
-              ? `${API_URL}/uploads/user_photos/${msg.user.photo}`
-              : null;
-
-            return (
-              <div
-                key={msg.id}
-                className="message-card"
-                style={{
-                  display: 'flex',
-                  gap: 15,
-                  backgroundColor: '#212529',
-                  padding: 15,
-                  borderRadius: 10,
-                  alignItems: 'flex-start',
-                }}
-              >
-                <Avatar username={username} photo={photo} size={50} />
-                <div className="message-content" style={{ flex: 1 }}>
-                  <div
-                    className="message-header"
-                    style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 14, color: '#adb5bd' }}
-                  >
-                    <span className="username" style={{ fontWeight: '600', color: '#f8f9fa' }}>{username}</span>
-                    <time dateTime={msg.createdAt}>{new Date(msg.createdAt).toLocaleString()}</time>
-                  </div>
-                  <div className="message-text" style={{ fontSize: 16, whiteSpace: 'pre-wrap' }}>
-                    {msg.content}
-                  </div>
-                </div>
+    <div className="container mt-4 topic-detail fadeInUp">
+      <Row>
+        <Col md={4}>
+          <div className="info-card mb-4">
+            <h3 className="mb-3">{topic.title}</h3>
+            <div className="d-flex align-items-center text-start gap-3 text-white mb-2">
+              <Avatar username={topic.user?.username || 'Utilisateur inconnu'} photo={topicAuthorPhoto} size={40} />
+              <div>
+                <strong>{topic.user?.username || 'Utilisateur inconnu'}</strong><br />
+                <small>
+                  <time dateTime={topic.createdAt}>{new Date(topic.createdAt).toLocaleString()}</time>
+                </small>
               </div>
-            );
-          })}
-        </div>
-      </section>
+            </div>
 
-      <section style={{ marginTop: 40 }}>
-        {isAuthenticated ? (
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {submitError && (
-              <Alert variant="danger" className="mb-2">
-                {submitError}
-              </Alert>
+            {topic.image && (
+              <Image
+                src={`${API_URL}${topic.image}`}
+                alt={`Image du topic ${topic.title}`}
+                fluid
+                rounded
+                className="my-3"
+                style={{ maxHeight: 250, objectFit: 'cover' }}
+              />
             )}
 
-            <label htmlFor="newMessage" style={{ fontWeight: '600', color: '#f8f9fa' }}>
-              <FaPaperPlane className="me-1" /> Répondre au topic
-            </label>
-            <textarea
-              id="newMessage"
-              rows={4}
-              placeholder="Votre message..."
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              disabled={submitting}
-              style={{
-                resize: 'vertical',
-                padding: 10,
-                fontSize: 16,
-                borderRadius: 8,
-                border: '1px solid #495057',
-                backgroundColor: '#343a40',
-                color: '#f8f9fa',
-              }}
-            />
-            <button
-              type="submit"
-              disabled={submitting}
-              style={{
-                alignSelf: 'flex-end',
-                backgroundColor: '#0d6efd',
-                color: 'white',
-                border: 'none',
-                padding: '10px 25px',
-                borderRadius: 8,
-                fontWeight: '600',
-                cursor: submitting ? 'not-allowed' : 'pointer',
-                transition: 'background-color 0.3s ease',
-              }}
-              onMouseEnter={(e) => !submitting && (e.currentTarget.style.backgroundColor = '#084cd6')}
-              onMouseLeave={(e) => !submitting && (e.currentTarget.style.backgroundColor = '#0d6efd')}
-            >
-              {submitting ? 'Envoi en cours...' : 'Envoyer'}
-            </button>
-          </form>
-        ) : (
-          <p style={{ color: '#adb5bd', fontStyle: 'italic' }}>
-            Vous devez être connecté pour répondre.
-          </p>
-        )}
-      </section>
+            {topic.description && (
+              <p className="card-text mt-3">{topic.description}</p>
+            )}
+          </div>
+        </Col>
+
+        <Col md={8}>
+          <div className="info-card mb-4">
+            <h4 className="d-flex align-items-center gap-2 mb-3">
+              <FaComments /> Messages ({topic.messages?.length || 0})
+            </h4>
+
+            {(!topic.messages || topic.messages.length === 0) ? (
+              <p className="fst-italic">Aucun message pour le moment.</p>
+            ) : (
+              <div className="d-flex flex-column gap-3">
+                {topic.messages.map((msg) => {
+                  const username = msg.user?.username || 'Utilisateur inconnu';
+                  const photo = msg.user?.photo
+                    ? `${API_URL}/uploads/user_photos/${msg.user.photo}`
+                    : null;
+
+                  return (
+                    <div key={msg.id} className="comment d-flex gap-3">
+                      <Avatar username={username} photo={photo} size={50} />
+                      <div>
+                        <div className="d-flex justify-content-between text-white small mb-1">
+                          <strong className="me-2">{username} le</strong>
+                          <time dateTime={msg.createdAt}>{new Date(msg.createdAt).toLocaleString()}</time>
+                        </div>
+                        <div className="comment-content">{msg.content}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="add-comment-form">
+            {isAuthenticated ? (
+              <form onSubmit={handleSubmit} className="d-flex flex-column gap-3">
+                {submitError && <Alert variant="danger">{submitError}</Alert>}
+                <label htmlFor="newMessage" className="fw-bold">
+                  <FaPaperPlane className="me-2" />Répondre au topic
+                </label>
+                <textarea
+                  id="newMessage"
+                  rows={4}
+                  placeholder="Votre message..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  disabled={submitting}
+                />
+                <button
+                  type="submit"
+                  className="btn-gradient align-self-end"
+                  disabled={submitting}
+                >
+                  {submitting ? 'Envoi en cours...' : 'Envoyer'}
+                </button>
+              </form>
+            ) : (
+              <p className="fst-italic">Vous devez être connecté pour répondre.</p>
+            )}
+          </div>
+        </Col>
+      </Row>
     </div>
   );
 };

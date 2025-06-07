@@ -3,14 +3,14 @@ import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
-import Login from "./pages/Login";
-import SignIn from "./pages/SignIn";
+import Login from "./pages/Identification/Login";
+import SignIn from "./pages/Identification/SignIn";
+import ForgotPassword from "./pages/Identification/ForgotPassword";
 import Games from "./pages/Games";
 import About from "./pages/About";
 import Privacy from "./pages/Privacy";
 import Contact from "./pages/Contact";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
-import ForgotPassword from "./pages/ForgotPassword";
 import GamePage from "./pages/GamePage";
 import PrivateRoute from "./components/PrivateRoute";
 import ChatBot from "./pages/ChatBot";
@@ -21,6 +21,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import SimilarGamesPage from "./pages/User/SimilarGamesPage";
 import Forum from "./pages/Forum/Forum";
 import TopicDetail from "./pages/Forum/TopicDetail";
+import ResetPassword from "./pages/Identification/ResetPassword";
 
 const App = () => {
   const { isAuthenticated } = useContext(AuthContext);
@@ -47,6 +48,7 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path= "reset-password/:token" element={<ResetPassword />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/games" element={<Games />} />
         <Route path="/gamepage/:id" element={<GamePage />} />

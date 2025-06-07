@@ -1,203 +1,180 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Form, Card, Spinner } from 'react-bootstrap';
-import { FaEdit, FaTrash, FaCheck, FaUser } from 'react-icons/fa';
+import React, { useState, useEffect, useRef } from 'react';
+import { Card, Button, Spinner, Form, Alert } from 'react-bootstrap';
+import { FaPen } from 'react-icons/fa';
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const UserProfile = ({ userId }) => {
   const [userData, setUserData] = useState(null);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({ username: '', email: '' });
   const [editMode, setEditMode] = useState(false);
-  const [newPic, setNewPic] = useState(null);
-  const [previewPic, setPreviewPic] = useState(null);
+  const [showPasswordField, setShowPasswordField] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const API_URL = process.env.REACT_APP_API_URL;
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const [previewPic, setPreviewPic] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const fileInputRef = useRef(null);
 
+  const token = localStorage.getItem('token');
+  
   useEffect(() => {
+    const token = localStorage.getItem('token');
     const fetchUser = async () => {
-      const token = localStorage.getItem('token');
+      setLoading(true);
       const res = await fetch(`${API_URL}/api/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       setUserData(data);
       setFormData({ username: data.username, email: data.email });
+      setLoading(false);
     };
     if (userId) fetchUser();
-  }, [userId, API_URL]);
-
-  // Extraire les 2 premières lettres du username en majuscule
-  const getInitials = (username) => {
-    if (!username) return '';
-    return username.slice(0, 2).toUpperCase();
-  };
+  }, [userId]);
 
   const handleUpdate = async () => {
-    const token = localStorage.getItem('token');
-    await fetch(`${API_URL}/api/users/${userId}`, {
+    setLoading(true);
+
+    const bodyData = {
+      username: formData.username.trim(),
+      email: formData.email.trim(),
+    };
+
+    if (newPassword.trim()) {
+      bodyData.password = newPassword.trim();
+    }
+
+    const res = await fetch(`${API_URL}/api/users/${userId}`, {
       method: 'PUT',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(formData),
+      body: JSON.stringify(bodyData),
     });
-    alert('Profil mis à jour');
-    setEditMode(false);
-    // Rafraichir les données utilisateur
-    setUserData(prev => ({ ...prev, username: formData.username, email: formData.email }));
+
+    if (res.ok) {
+      setEditMode(false);
+      setShowPasswordField(false);
+      setNewPassword('');
+      setSuccess('Profil mis à jour avec succès.');
+      setUserData({ ...userData, ...bodyData });
+    } else {
+      setSuccess('Erreur lors de la mise à jour.');
+    }
+
+    setLoading(false);
+    setTimeout(() => setSuccess(null), 3000);
   };
 
-  const handlePhotoUpload = async () => {
-    if (!newPic) return;
+  const handlePhotoChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPreviewPic(URL.createObjectURL(file));
+    setUploadLoading(true);
 
-    setLoading(true);
     const form = new FormData();
-    form.append('photo', newPic);
+    form.append('photo', file);
 
-    const token = localStorage.getItem('token');
     const res = await fetch(`${API_URL}/api/users/${userId}/upload-photo`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
       body: form,
     });
 
     const data = await res.json();
-    if (res.ok) {
-      setUserData(prev => ({ ...prev, photo: data.filename }));
-      setPreviewPic(null);
-      setNewPic(null);
-    } else {
-      alert(data.message || 'Erreur lors de l’upload.');
-    }
-    setLoading(false);
+    setUserData((prev) => ({ ...prev, photo: data.filename }));
+    setUploadLoading(false);
   };
 
-  const handlePhotoDelete = async () => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_URL}/api/users/${userId}/photo`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  const profilePic = previewPic || (userData?.photo ? `${API_URL}/uploads/user_photos/${userData.photo}` : null);
 
-    const data = await res.json();
-    if (res.ok) {
-      setUserData(prev => ({ ...prev, photo: null }));
-      alert('Photo supprimée avec succès.');
-    } else {
-      alert(data.message || 'Erreur lors de la suppression.');
-    }
-  };
+  return loading ? (
+    <Spinner animation="border" variant="info" />
+  ) : (
+    <Card className="p-4 text-white" style={{ backgroundColor: '#1e1e1e', maxWidth: '600px', margin: '0 auto' }}>
+      {success && <Alert variant="success">{success}</Alert>}
 
-  const profilePicUrl = previewPic || (userData?.photo ? `${API_URL}/uploads/user_photos/${userData.photo}` : null);
-
-  return (
-    <Card className="p-4 mb-4 shadow-sm bg-dark text-white" style={{ maxWidth: '400px', margin: 'auto' }}>
-      <h3 className="text-center mb-4">
-        <FaUser style={{ marginRight: '8px' }} />
-        Mon Profil
-      </h3>
-
-      <div className="text-center mb-4">
-        {profilePicUrl ? (
-          <img
-            src={profilePicUrl}
-            alt="Profil"
-            style={{
-              width: '120px',
-              height: '120px',
-              borderRadius: '50%',
-              objectFit: 'cover',
-              border: '3px solid #00ffff',
-            }}
-          />
+      <div className="text-center position-relative mb-4">
+        {profilePic ? (
+          <img src={profilePic} alt="Profil" className="rounded-circle border" style={{ width: '120px', height: '120px', objectFit: 'cover' }} />
         ) : (
-          <div
-            style={{
-              width: '120px',
-              height: '120px',
-              borderRadius: '50%',
-              backgroundColor: '#00ffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '48px',
-              fontWeight: 'bold',
-              color: '#001',
-              userSelect: 'none',
-              border: '3px solid #00ffff',
-              margin: 'auto',
-            }}
-          >
-            {getInitials(userData?.username)}
+          <div className="rounded-circle bg-info d-flex align-items-center justify-content-center text-dark fw-bold"
+            style={{ width: '120px', height: '120px', fontSize: '40px' }}>
+            {userData?.username?.[0]?.toUpperCase()}
           </div>
         )}
-
-        <div className="mt-3">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files[0];
-              setNewPic(file);
-              setPreviewPic(URL.createObjectURL(file));
-            }}
-            style={{ marginBottom: '10px' }}
-          />
-          {newPic && (
-            <Button
-              variant="success"
-              size="sm"
-              className="me-2"
-              onClick={handlePhotoUpload}
-              disabled={loading}
-            >
-              {loading ? <Spinner animation="border" size="sm" /> : <><FaCheck /> Valider la photo</>}
-            </Button>
-          )}
-          {userData?.photo && !newPic && (
-            <Button variant="danger" size="sm" onClick={handlePhotoDelete}>
-              <FaTrash /> Supprimer la photo
-            </Button>
-          )}
-        </div>
+        <button
+          className="btn btn-sm btn-info position-absolute"
+          style={{ bottom: 0, left: '50%', transform: 'translateX(-50%)', borderRadius: '50%' }}
+          onClick={() => fileInputRef.current.click()}
+          title="Changer la photo"
+        >
+          <FaPen />
+        </button>
+        <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handlePhotoChange} />
+        {uploadLoading && <small className="d-block mt-2">Chargement...</small>}
       </div>
 
       {editMode ? (
-        <>
+        <Form>
           <Form.Group className="mb-3">
             <Form.Label>Nom d'utilisateur</Form.Label>
             <Form.Control
+              size="sm"
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-              style={{ backgroundColor: '#222', color: 'white', borderColor: '#00ffff' }}
             />
           </Form.Group>
+
           <Form.Group className="mb-3">
             <Form.Label>Email</Form.Label>
             <Form.Control
+              size="sm"
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              style={{ backgroundColor: '#222', color: 'white', borderColor: '#00ffff' }}
             />
           </Form.Group>
-          <Button onClick={handleUpdate} variant="primary" className="me-2">
-            Sauvegarder
+
+          <Button
+            variant="outline-light"
+            className="mb-3"
+            size="sm"
+            onClick={() => setShowPasswordField(!showPasswordField)}
+          >
+            {showPasswordField ? 'Annuler le changement de mot de passe' : 'Modifier le mot de passe'}
           </Button>
-          <Button variant="secondary" onClick={() => setEditMode(false)}>
-            Annuler
-          </Button>
-        </>
+
+          {showPasswordField && (
+            <Form.Group className="mb-3">
+              <Form.Label>Nouveau mot de passe</Form.Label>
+              <Form.Control
+                size="sm"
+                type="password"
+                placeholder="Nouveau mot de passe"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </Form.Group>
+          )}
+
+          <div className="d-flex justify-content-between">
+            <Button variant="info" size="sm" onClick={handleUpdate}>Sauvegarder</Button>
+            <Button variant="secondary" size="sm" onClick={() => {
+              setEditMode(false);
+              setShowPasswordField(false);
+              setNewPassword('');
+            }}>Annuler</Button>
+          </div>
+        </Form>
       ) : (
         <>
-          <p><strong>Nom d'utilisateur :</strong> {userData?.username}</p>
+          <p><strong>Nom :</strong> {userData?.username}</p>
           <p><strong>Email :</strong> {userData?.email}</p>
-          <Button variant="outline-primary" onClick={() => setEditMode(true)}>
-            <FaEdit /> Modifier
-          </Button>
+          <p><strong>Mot de passe :</strong> ******</p>
+          <Button variant="outline-info" size="sm" onClick={() => setEditMode(true)}>Modifier</Button>
         </>
       )}
     </Card>

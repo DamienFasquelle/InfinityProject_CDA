@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Row, Col, Form, Container } from 'react-bootstrap';
+import { Button, Row, Form,  } from 'react-bootstrap';
 import { fetchPlatforms, fetchGenres, fetchGames, fetchTags } from '../services/rawgService';
 import GameCard from '../components/GameCard';
 
@@ -105,7 +105,7 @@ const Games = () => {
       <section className="container-fluid my-4">
         <Row>
           {/* Colonne filtres */}
-          <aside className="col-md-3 mb-4"  style={{ position: 'sticky', top: '80px', alignSelf: 'start' }}>
+          <aside className="col-md-3 mb-4 filter-game"  style={{ position: 'sticky', top: '80px', alignSelf: 'start' }}>
             <section className="p-4 bg-dark text-light rounded shadow">
               <h2 className="text-primary mb-4 text-center">Filtres</h2>
               <Form>

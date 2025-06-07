@@ -127,7 +127,7 @@ const Forum = () => {
     <main className="container my-4">
       <section className="text-center mb-4">
         <h1 className="fw-bold">Forum Infinity Games</h1>
-        <p className="text-muted">
+        <p className="text-white">
           Partagez vos idées, posez vos questions ou discutez autour de vos jeux préférés.
         </p>
 

@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button, Col, Form, Row, Container, Alert } from 'react-bootstrap';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { AuthContext } from '../providers/AuthProvider';
+import { AuthContext } from '../../providers/AuthProvider';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -115,6 +115,10 @@ const Login = () => {
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </Button>
                 </div>
+                <div className="mt-2 text-center">
+  <Link to="/forgot-password">Mot de passe oublié ?</Link>
+</div>
+
               </Form.Group>
 
               <Button type="submit" className="btn-gradient w-100" style={{ fontWeight: 600 }}>

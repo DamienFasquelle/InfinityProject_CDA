@@ -642,4 +642,7 @@ input:focus, select:focus, textarea:focus {
   .reply-form button {
     width: 100%;
   }
+  .filter-game {
+    position: inherit !important
+  }
 }

@@ -28,10 +28,18 @@ export const fetchGames = async ({ page = 1, pageSize = 20, filters = {} }) => {
   return await handleFetch(url);
 };
 
-export const fetchPopularGames = async (dates = '2023-01-01', platforms = '18,1,7') => {
-  const url = `${BASE_URL}/games?key=${API_KEY}&dates=${dates}&platforms=${platforms}`;
+export const fetchPopularGames = async ({ page = 1, pageSize = 12 }) => {
+  const params = new URLSearchParams({
+    key: API_KEY,
+    ordering: '-rating',
+    page,
+    page_size: pageSize,
+  });
+
+  const url = `${BASE_URL}/games?${params.toString()}`;
   return await handleFetch(url);
 };
+
 
 export const fetchRecentGames = async ({ dateFrom, page = 1, pageSize = 12 }) => {
   const params = new URLSearchParams({
@@ -133,3 +141,9 @@ export const fetchGameSeries = async (gameId) => {
   const data = await handleFetch(url);
   return data || {};
 };
+
+export const fetchTopRatedGames = async () => {
+  const url = `${BASE_URL}/games?key=${API_KEY}&ordering=-rating&page_size=12`;
+  return await handleFetch(url);
+};
+

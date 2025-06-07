@@ -78,7 +78,7 @@ const Header = () => {
               <Nav.Link as={Link} to="/games">Bibliothèque de jeux</Nav.Link>
               <Nav.Link as={Link} to="/forum">Forum</Nav.Link>
               {isAdmin && <Nav.Link as={Link} to="/admin">Administration</Nav.Link>}
-              {isUser && isAdmin && (
+              {isUser && (
                 <>
                   <Nav.Link as={Link} to="/recommandation">Jeux recommandés</Nav.Link>
                   <Nav.Link as={Link} to="/similar-games">Jeux similaires</Nav.Link>
