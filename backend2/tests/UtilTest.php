@@ -72,7 +72,7 @@ $client->request(
     json_encode([
         'username' => 'testuser',
         'email' => $email,
-        'password' => 'testpass'
+        'password' => 'StrongPass1!'
     ])
 );
 

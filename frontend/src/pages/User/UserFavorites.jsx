@@ -36,21 +36,20 @@ const UserFavorites = () => {
   }, [favorites]);
 
   return (
-    <div>
-      <h3 style={{ color: '#00ffff' }}>Mes jeux en favoris</h3>
-      {loading ? (
-        <Spinner animation="border" variant="info" />
-      ) : (
-        <Row className="px-3 py-3 gy-3 gx-2 justify-content-center">
-  {games.map((game) => (
-    <Col key={game.id} md={4} lg={2} sm={6} className="mb-3">
-      <GameCard game={game} />
-    </Col>
-  ))}
-</Row>
-
-      )}
-    </div>
+    <div style={{ padding: '0 1rem' }}>
+  <h3 style={{ color: '#00ffff' }}>Mes jeux en favoris</h3>
+  {loading ? (
+    <Spinner animation="border" variant="info" />
+  ) : (
+    <Row className="gy-3 gx-2 justify-content-center">
+      {games.map((game) => (
+        <Col key={game.id} md={4} lg={2} sm={6}>
+          <GameCard game={game} />
+        </Col>
+      ))}
+    </Row>
+  )}
+</div>
   );
 };
 

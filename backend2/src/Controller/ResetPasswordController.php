@@ -6,6 +6,7 @@ use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
@@ -44,7 +45,7 @@ class ResetPasswordController extends AbstractController
         $user->setResetToken($resetToken);
         $entityManager->flush();
 
-        // Renvoie le token directement
+        // Renvoie le token directement (à modifier en prod pour email)
         return new JsonResponse(['message' => 'Token généré.', 'token' => $resetToken], JsonResponse::HTTP_OK);
     }
 
@@ -67,10 +68,27 @@ class ResetPasswordController extends AbstractController
             return new JsonResponse(['message' => 'Token invalide ou expiré.'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
+        if (!$this->isPasswordStrong($password)) {
+            return new JsonResponse([
+                'message' => 'Le mot de passe est trop faible'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
         $user->setPassword($passwordHasher->hashPassword($user, $password));
         $user->setResetToken(null);
         $entityManager->flush();
 
         return new JsonResponse(['message' => 'Mot de passe réinitialisé avec succès.']);
+    }
+    
+    private function isPasswordStrong(string $password): bool
+    {
+        $length = strlen($password) >= 8;
+        $uppercase = preg_match('/[A-Z]/', $password);
+        $lowercase = preg_match('/[a-z]/', $password);
+        $number = preg_match('/[0-9]/', $password);
+        $specialChar = preg_match('/[!@#$%^&*(),.?":{}|<>]/', $password);
+
+        return $length && $uppercase && $lowercase && $number && $specialChar;
     }
 }

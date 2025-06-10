@@ -101,7 +101,8 @@ const ChatBot = ({ onGameRecommendations }) => {
 
   return (
     <div className={`chatbot-container ${isOpen ? "open" : ""}`}>
-      <img
+        <h2 className="fs-5 fw-bold">ChatBot</h2>
+       <img
         src={manette}
         alt="Ouvrir le chatbot"
         className="chatbot-toggle"

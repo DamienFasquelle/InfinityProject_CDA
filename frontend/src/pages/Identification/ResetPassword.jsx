@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Form, Button, Alert, Container } from 'react-bootstrap';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { Form, Button, Alert, Container, Row, Col } from 'react-bootstrap';
+import PasswordStrength from '../../components/PasswordStrength'; // adapte le chemin si besoin
 
 const ResetPassword = () => {
   const { token } = useParams();
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -27,9 +26,11 @@ const ResetPassword = () => {
       const data = await res.json();
 
       if (!res.ok) throw new Error(data.message || 'Erreur inconnue');
-      
-      setMessage('Mot de passe modifié avec succès. Vous allez être redirigé vers la page de connexion.');
-      
+
+      setMessage(
+        'Mot de passe modifié avec succès. Vous allez être redirigé vers la page de connexion.'
+      );
+
       setTimeout(() => navigate('/login'), 3000);
     } catch (err) {
       setError(err.message);
@@ -37,51 +38,48 @@ const ResetPassword = () => {
   };
 
   return (
-    <Container className="my-5" style={{ maxWidth: '500px' }}>
-      <h3>Réinitialiser le mot de passe</h3>
-      {message && <Alert variant="success">{message}</Alert>}
-      {error && <Alert variant="danger">{error}</Alert>}
+    <Container
+      fluid="sm"
+      className="d-flex justify-content-center align-items-center"
+      style={{ minHeight: '80vh' }}
+    >
+      <Row className="w-100 justify-content-center">
+        <Col xs={12} sm={10} md={8} lg={6} xl={5}>
+          <div
+            className="form-container card p-4"
+            style={{ borderRadius: 'var(--border-radius)', boxShadow: 'var(--shadow)' }}
+          >
+            <h2 className="card-title text-center mb-4" style={{ color: 'var(--primary)' }}>
+              Réinitialiser le mot de passe
+            </h2>
 
-      <Form onSubmit={handleSubmit}>
-        <Form.Group controlId="password" className="mb-3">
-          <Form.Label>Nouveau mot de passe</Form.Label>
-          <div style={{ position: 'relative' }}>
-            <Form.Control
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Entrez un nouveau mot de passe"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={{ paddingRight: '2.5rem' }}
-            />
-            <Button
-              variant="outline-secondary"
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              style={{
-                position: 'absolute',
-                right: '0.5rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                border: 'none',
-                padding: '0.25rem 0.5rem',
-                height: 'auto',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-              }}
-              aria-label={showPassword ? "Cacher le mot de passe" : "Afficher le mot de passe"}
-            >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
-            </Button>
+            {message && (
+              <Alert variant="success" className="text-center">
+                {message}
+              </Alert>
+            )}
+            {error && (
+              <Alert variant="danger" className="text-center">
+                {error}
+              </Alert>
+            )}
+
+            <Form onSubmit={handleSubmit}>
+              <Form.Group controlId="password" className="mb-4 text-white">
+                <PasswordStrength value={password} onChange={setPassword} />
+              </Form.Group>
+
+              <Button type="submit" className="btn-gradient w-100" style={{ fontWeight: 600 }}>
+                Réinitialiser
+              </Button>
+            </Form>
+
+            <div className="mt-3 text-center" style={{ fontSize: '0.9rem' }}>
+              <Link to="/login">← Retour à la connexion</Link>
+            </div>
           </div>
-        </Form.Group>
-
-        <Button type="submit" className="w-100">
-          Réinitialiser
-        </Button>
-      </Form>
+        </Col>
+      </Row>
     </Container>
   );
 };

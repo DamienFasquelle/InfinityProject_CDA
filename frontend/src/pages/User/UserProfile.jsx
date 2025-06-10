@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, Button, Spinner, Form, Alert } from 'react-bootstrap';
 import { FaPen } from 'react-icons/fa';
+import PasswordStrength from '../../components/PasswordStrength';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -10,6 +11,7 @@ const UserProfile = ({ userId }) => {
   const [editMode, setEditMode] = useState(false);
   const [showPasswordField, setShowPasswordField] = useState(false);
   const [newPassword, setNewPassword] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [uploadLoading, setUploadLoading] = useState(false);
   const [previewPic, setPreviewPic] = useState(null);
@@ -98,7 +100,16 @@ const UserProfile = ({ userId }) => {
   return loading ? (
     <Spinner animation="border" variant="info" />
   ) : (
-    <Card className="p-4 text-white" style={{ backgroundColor: '#1e1e1e', maxWidth: '600px', margin: '0 auto' }}>
+    <Card
+  className="p-4 text-white"
+  style={{
+    backgroundColor: '#1e1e1e',
+    maxWidth: '600px',
+    margin: '0 auto',
+    width: '100%',
+    boxSizing: 'border-box',
+  }}
+>
       {success && <Alert variant="success">{success}</Alert>}
       {error && <Alert variant="danger">{error}</Alert>}
 
@@ -155,14 +166,8 @@ const UserProfile = ({ userId }) => {
 
           {showPasswordField && (
             <Form.Group className="mb-3">
-              <Form.Label>Nouveau mot de passe</Form.Label>
-              <Form.Control
-                size="sm"
-                type="password"
-                placeholder="Nouveau mot de passe"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
+              <Form.Label>Nouveau</Form.Label>
+              <PasswordStrength value={password} onChange={setPassword} />
             </Form.Group>
           )}
 

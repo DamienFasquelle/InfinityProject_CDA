@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Tests;
+namespace App\Tests\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class CommentControllerTest extends WebTestCase
 {
-    private function logInAndGetToken($client): string
+    private function loginAndGetToken($client): string
     {
         $client->request(
             'POST',
@@ -30,9 +30,9 @@ class CommentControllerTest extends WebTestCase
     public function testCreateUpdateDeleteComment(): void
     {
         $client = static::createClient();
-        $token = $this->logInAndGetToken($client);
+        $token = $this->loginAndGetToken($client);
 
-        // Création
+        // Création du commentaire
         $client->request(
             'POST',
             '/api/comment',
@@ -50,11 +50,12 @@ class CommentControllerTest extends WebTestCase
         );
 
         $this->assertResponseStatusCodeSame(201);
-        $responseData = json_decode($client->getResponse()->getContent(), true);
-        $this->assertArrayHasKey('id', $responseData);
-        $commentId = $responseData['id'];
+        $created = json_decode($client->getResponse()->getContent(), true);
+        $this->assertArrayHasKey('id', $created);
+        $this->assertEquals('Un super jeu !', $created['content']);
+        $commentId = $created['id'];
 
-        // Mise à jour
+        // Mise à jour du commentaire
         $client->request(
             'PUT',
             '/api/comment/' . $commentId,
@@ -71,11 +72,11 @@ class CommentControllerTest extends WebTestCase
         );
 
         $this->assertResponseIsSuccessful();
-        $updatedData = json_decode($client->getResponse()->getContent(), true);
-        $this->assertEquals('Mise à jour du commentaire', $updatedData['content']);
-        $this->assertEquals(4, $updatedData['rating']);
+        $updated = json_decode($client->getResponse()->getContent(), true);
+        $this->assertEquals('Mise à jour du commentaire', $updated['content']);
+        $this->assertEquals(4, $updated['rating']);
 
-        // Suppression
+        // Suppression du commentaire
         $client->request(
             'DELETE',
             '/api/comment/' . $commentId,
@@ -87,22 +88,17 @@ class CommentControllerTest extends WebTestCase
         );
 
         $this->assertResponseIsSuccessful();
-        $deletedData = json_decode($client->getResponse()->getContent(), true);
-        $this->assertArrayHasKey('message', $deletedData);
+        $deleted = json_decode($client->getResponse()->getContent(), true);
+        $this->assertArrayHasKey('message', $deleted);
     }
 
     public function testGetCommentsByGame(): void
     {
         $client = static::createClient();
-
-        $client->request(
-            'GET',
-            '/comments/101'
-        );
+        $client->request('GET', '/comments/101');
 
         $this->assertResponseIsSuccessful();
         $comments = json_decode($client->getResponse()->getContent(), true);
         $this->assertIsArray($comments);
     }
-
 }

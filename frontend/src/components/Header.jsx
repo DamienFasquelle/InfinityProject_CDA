@@ -1,8 +1,19 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Navbar, Nav, Container, Form, Button, InputGroup, Spinner, Image, Dropdown } from "react-bootstrap";
+import {
+  Navbar,
+  Nav,
+  Container,
+  Form,
+  Button,
+  InputGroup,
+  Spinner,
+  Image,
+  Dropdown,
+  Collapse,
+} from "react-bootstrap";
 import { FaTimes, FaSearch, FaSignOutAlt, FaUserCircle } from "react-icons/fa";
-import logo from "../assets/images/logo.png";
+import logo from "../assets/images/logo2.svg";
 import { useGames } from "../providers/GameProvider";
 import { AuthContext } from "../providers/AuthProvider";
 
@@ -11,10 +22,10 @@ const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [loadingSearch, setLoadingSearch] = useState(false);
-  const { searchResults, handleSearch } = useGames();
   const [showSearchMobile, setShowSearchMobile] = useState(false);
-  const navigate = useNavigate();
+  const { searchResults, handleSearch } = useGames();
   const searchRef = useRef(null);
+  const navigate = useNavigate();
 
   const handleSearchChange = async (e) => {
     const value = e.target.value;
@@ -45,9 +56,7 @@ const Header = () => {
   const handleClickOutside = (e) => {
     if (searchRef.current && !searchRef.current.contains(e.target)) {
       setShowResults(false);
-      if (window.innerWidth < 992) {
-        setShowSearchMobile(false);
-      }
+      setShowSearchMobile(false);
     }
   };
 
@@ -56,115 +65,117 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    if (showSearchMobile && searchRef.current) {
-      const input = searchRef.current.querySelector("input");
-      if (input) input.focus();
-    }
-  }, [showSearchMobile]);
-
   return (
-    <header className="header-container">
+    <header>
       <Navbar expand="lg" bg="dark" variant="dark" className="py-3">
-        <Container>
-          <Navbar.Brand as={Link} to="/">
-            <img src={logo} alt="Infinity Games Logo" height="40" />
-          </Navbar.Brand>
-
-          <Navbar.Toggle aria-controls="navbar-nav" />
-
-          <Navbar.Collapse id="navbar-nav" className="align-items-center">
-            <Nav className="me-auto">
-              <Nav.Link as={Link} to="/games">Bibliothèque de jeux</Nav.Link>
-              <Nav.Link as={Link} to="/forum">Forum</Nav.Link>
-              {isUser && (
-                <>
-                  <Nav.Link as={Link} to="/recommandation">Jeux recommandés</Nav.Link>
-                  <Nav.Link as={Link} to="/similar-games">Jeux similaires</Nav.Link>
-                </>
-              )}
-              {isAdmin && <Nav.Link as={Link} to="/admin" className="text-danger">Administration</Nav.Link>}
-            </Nav>
-
+        <Container fluid>
+          <div className="d-flex w-100 justify-content-between align-items-center flex-wrap">
+            {/* LEFT: Logo + Navigation */}
             <div className="d-flex align-items-center">
+              <Navbar.Brand as={Link} to="/" className="me-4">
+                <img src={logo} alt="Logo" height="60" />
+              </Navbar.Brand>
+
+              <Nav className="d-none d-lg-flex">
+                <Nav.Link as={Link} to="/games">Bibliothèque</Nav.Link>
+                <Nav.Link as={Link} to="/forum">Forum</Nav.Link>
+                {isUser && (
+                  <>
+                    <Nav.Link as={Link} to="/recommandation">Jeux recommandés</Nav.Link>
+                    <Nav.Link as={Link} to="/similar-games">Jeux similaires</Nav.Link>
+                  </>
+                )}
+                {isAdmin && (
+                  <Nav.Link as={Link} to="/admin" className="text-danger">
+                    Administration
+                  </Nav.Link>
+                )}
+              </Nav>
+            </div>
+
+            {/* RIGHT: Search + User */}
+            <div className="d-flex align-items-center ms-auto mt-3 mt-lg-0" style={{ gap: "1rem" }}>
+              {/* Mobile Search Toggle */}
               <Button
                 variant="outline-light"
-                className="d-lg-none me-2"
-                onClick={() => setShowSearchMobile(true)}
-                aria-label="Afficher la recherche"
+                className="d-lg-none"
+                onClick={() => setShowSearchMobile((prev) => !prev)}
               >
                 <FaSearch />
               </Button>
 
-              {(showSearchMobile || window.innerWidth >= 992) && (
-                <Form
-                  ref={searchRef}
-                  className="search-form d-flex me-3"
-                  style={{ position: "relative", width: window.innerWidth >= 992 ? "350px" : "100%" }}
-                  onSubmit={e => e.preventDefault()}
-                >
-                  <InputGroup>
-                    <Form.Control
-                      type="text"
-                      placeholder="Rechercher un jeu"
-                      value={searchQuery}
-                      onChange={handleSearchChange}
-                      autoComplete="off"
-                      aria-label="Rechercher un jeu"
-                    />
-                    {searchQuery && (
-                      <InputGroup.Text onClick={clearSearch} style={{ cursor: "pointer" }}>
-                        <FaTimes />
-                      </InputGroup.Text>
-                    )}
-                  </InputGroup>
-
-                  {showResults && searchQuery && (
-                    <div className="search-results shadow-sm bg-dark text-light"
-                      style={{
-                        position: "absolute",
-                        top: "100%",
-                        left: 0,
-                        right: 0,
-                        maxHeight: "300px",
-                        overflowY: "auto",
-                        border: "1px solid #6c757d",
-                        borderTop: "none",
-                        zIndex: 1050,
-                      }}
-                    >
-                      {loadingSearch ? (
-                        <div className="text-center p-3">
-                          <Spinner animation="border" size="sm" variant="light" />
-                        </div>
-                      ) : searchResults.length === 0 ? (
-                        <div className="px-3 py-2 text-muted">Aucun résultat</div>
-                      ) : (
-                        searchResults.map((result, index) => (
-                          <div
-                            key={index}
-                            onClick={() => handleSelectResult(result.name)}
-                            className="px-3 py-2"
-                            style={{ cursor: "pointer" }}
-                          >
-                            {result.name}
-                          </div>
-                        ))
-                      )}
-                    </div>
+              {/* Desktop Search */}
+              <Form
+                ref={searchRef}
+                className="d-none d-lg-block"
+                style={{ position: "relative", width: "300px" }}
+                onSubmit={(e) => e.preventDefault()}
+              >
+                <InputGroup>
+                  <Form.Control
+                    type="text"
+                    placeholder="Rechercher un jeu"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    autoComplete="off"
+                  />
+                  {searchQuery && (
+                    <InputGroup.Text onClick={clearSearch} style={{ cursor: "pointer" }}>
+                      <FaTimes />
+                    </InputGroup.Text>
                   )}
-                </Form>
-              )}
+                  <InputGroup.Text>
+                    <FaSearch />
+                  </InputGroup.Text>
+                </InputGroup>
 
+                {showResults && searchQuery && (
+                  <div
+                    className="bg-dark text-light shadow-sm"
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      left: 0,
+                      right: 0,
+                      zIndex: 1050,
+                      maxHeight: "300px",
+                      overflowY: "auto",
+                      border: "1px solid #6c757d",
+                      borderTop: "none",
+                    }}
+                  >
+                    {loadingSearch ? (
+                      <div className="text-center p-3">
+                        <Spinner animation="border" size="sm" variant="light" />
+                      </div>
+                    ) : searchResults.length === 0 ? (
+                      <div className="px-3 py-2 text-muted">Aucun résultat</div>
+                    ) : (
+                      searchResults.map((result, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => handleSelectResult(result.name)}
+                          className="px-3 py-2"
+                          style={{ cursor: "pointer" }}
+                        >
+                          {result.name}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </Form>
+
+              {/* User Dropdown */}
               {isAuthenticated ? (
-                <Dropdown align="">
-                  <Dropdown.Toggle variant="outline-light" id="user-dropdown" className="d-flex align-items-center">
+                <Dropdown align="end">
+                  <Dropdown.Toggle variant="outline-light" className="d-flex align-items-center">
                     {user?.avatarUrl ? (
                       <Image src={user.avatarUrl} roundedCircle width="30" height="30" className="me-2" />
                     ) : (
                       <FaUserCircle className="me-2" size={20} />
                     )}
-                    <span className="d-none d-md-inline">{user?.name || "Mon profil"}</span>
+                    <span className="d-none d-md-inline">{user?.name || "Profil"}</span>
                   </Dropdown.Toggle>
                   <Dropdown.Menu>
                     <Dropdown.Item as={Link} to="/user">Mon compte</Dropdown.Item>
@@ -175,11 +186,90 @@ const Header = () => {
                   </Dropdown.Menu>
                 </Dropdown>
               ) : (
-                <Link to="/login" className="btn btn-gradient ms-3">
+                <Link to="/login" className="btn btn-outline-light">
                   Connexion
                 </Link>
               )}
             </div>
+          </div>
+
+          {/* Collapse Search on mobile */}
+          <Collapse in={showSearchMobile}>
+            <div className="mt-3 d-lg-none" ref={searchRef}>
+              <Form onSubmit={(e) => e.preventDefault()} style={{ position: "relative" }}>
+                <InputGroup>
+                  <Form.Control
+                    type="text"
+                    placeholder="Rechercher un jeu"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    autoComplete="off"
+                  />
+                  {searchQuery && (
+                    <InputGroup.Text onClick={clearSearch} style={{ cursor: "pointer" }}>
+                      <FaTimes />
+                    </InputGroup.Text>
+                  )}
+                  <InputGroup.Text>
+                    <FaSearch />
+                  </InputGroup.Text>
+                </InputGroup>
+
+                {showResults && searchQuery && (
+                  <div
+                    className="bg-dark text-light shadow-sm"
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      left: 0,
+                      right: 0,
+                      zIndex: 1050,
+                      maxHeight: "300px",
+                      overflowY: "auto",
+                      border: "1px solid #6c757d",
+                      borderTop: "none",
+                    }}
+                  >
+                    {loadingSearch ? (
+                      <div className="text-center p-3">
+                        <Spinner animation="border" size="sm" variant="light" />
+                      </div>
+                    ) : searchResults.length === 0 ? (
+                      <div className="px-3 py-2 text-muted">Aucun résultat</div>
+                    ) : (
+                      searchResults.map((result, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => handleSelectResult(result.name)}
+                          className="px-3 py-2"
+                          style={{ cursor: "pointer" }}
+                        >
+                          {result.name}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </Form>
+            </div>
+          </Collapse>
+
+          {/* Navigation mobile */}
+          <Navbar.Toggle aria-controls="navbar-nav" className="mt-3" />
+          <Navbar.Collapse id="navbar-nav">
+            <Nav className="flex-column d-lg-none">
+              <Nav.Link as={Link} to="/games">Bibliothèque</Nav.Link>
+              <Nav.Link as={Link} to="/forum">Forum</Nav.Link>
+              {isUser && (
+                <>
+                  <Nav.Link as={Link} to="/recommandation">Jeux recommandés</Nav.Link>
+                  <Nav.Link as={Link} to="/similar-games">Jeux similaires</Nav.Link>
+                </>
+              )}
+              {isAdmin && (
+                <Nav.Link as={Link} to="/admin" className="text-danger">Administration</Nav.Link>
+              )}
+            </Nav>
           </Navbar.Collapse>
         </Container>
       </Navbar>

@@ -24,7 +24,7 @@ const UserComments = ({ userId }) => {
   }, [userId]);
 
   return (
-    <div>
+    <div style={{ padding: '0 1rem' }}>
       <h3 style={{ color: '#00ffff' }}>Mes commentaires</h3>
       {loading ? (
         <Spinner animation="border" variant="info" />

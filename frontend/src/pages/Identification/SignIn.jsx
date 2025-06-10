@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Form, Button, Container, Row, Col, Alert } from 'react-bootstrap';
+import PasswordStrength from '../../components/PasswordStrength';
+
 
 const SignIn = () => {
   const [username, setUsername] = useState('');
@@ -28,52 +30,27 @@ const SignIn = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        if (errorData && errorData.message) {
-          throw new Error(errorData.message);
-        } else {
-          throw new Error('Erreur lors de l’inscription. Veuillez vérifier les informations.');
-        }
+        throw new Error(errorData.message || 'Erreur lors de l’inscription.');
       }
 
       setSuccess(true);
       alert('Inscription réussie, veuillez vous connecter !');
       navigate('/login');
     } catch (err) {
-      if (err.name === 'TypeError') {
-        setError('Le serveur ne répond pas. Vérifiez votre connexion.');
-      } else {
-        setError(err.message || 'Une erreur inconnue est survenue.');
-      }
+      setError(err.message || 'Une erreur inconnue est survenue.');
       setSuccess(false);
     }
   };
 
   return (
-    <Container
-      fluid="sm"
-      className="d-flex justify-content-center align-items-center"
-      style={{ minHeight: '80vh' }}
-    >
+    <Container fluid="sm" className="d-flex justify-content-center align-items-center" style={{ minHeight: '80vh' }}>
       <Row className="w-100 justify-content-center">
         <Col xs={12} sm={10} md={8} lg={6} xl={5}>
-          <div
-            className="form-container card p-4"
-            style={{ borderRadius: 'var(--border-radius)', boxShadow: 'var(--shadow)' }}
-          >
-            <h2 className="card-title text-center mb-4">
-              Inscription
-            </h2>
+          <div className="form-container card p-4" style={{ borderRadius: 'var(--border-radius)', boxShadow: 'var(--shadow)' }}>
+            <h2 className="card-title text-center mb-4">Inscription</h2>
 
-            {error && (
-              <Alert variant="danger" className="text-center">
-                {error}
-              </Alert>
-            )}
-            {success && (
-              <Alert variant="success" className="text-center">
-                Inscription réussie !
-              </Alert>
-            )}
+            {error && <Alert variant="danger" className="text-center">{error}</Alert>}
+            {success && <Alert variant="success" className="text-center">Inscription réussie !</Alert>}
 
             <Form onSubmit={handleSubmit}>
               <Form.Group controlId="username" className="mb-3 text-white">
@@ -99,14 +76,7 @@ const SignIn = () => {
               </Form.Group>
 
               <Form.Group controlId="password" className="mb-4 text-white">
-                <Form.Label>Mot de passe</Form.Label>
-                <Form.Control
-                  type="password"
-                  placeholder="Entrez votre mot de passe"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <PasswordStrength value={password} onChange={setPassword} />
               </Form.Group>
 
               <Button type="submit" className="btn-gradient w-100" style={{ fontWeight: 600 }}>

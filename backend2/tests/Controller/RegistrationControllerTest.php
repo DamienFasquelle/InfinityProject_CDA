@@ -13,7 +13,7 @@ class RegistrationControllerTest extends WebTestCase
         $payload = [
             'email' => 'newuser@example.com',
             'username' => 'newuser',
-            'password' => 'securepassword',
+            'password' => 'StrongPass1!',
         ];
 
         $client->request(
@@ -28,7 +28,8 @@ class RegistrationControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(201);
         $responseData = json_decode($client->getResponse()->getContent(), true);
         $this->assertArrayHasKey('message', $responseData);
-        $this->assertStringContainsString('succés', $responseData['message']);
+        // Attention à l’accent dans "succès"
+        $this->assertStringContainsString('succès', $responseData['message']);
     }
 
     public function testRegisterMissingFields(): void
@@ -38,7 +39,7 @@ class RegistrationControllerTest extends WebTestCase
         $payload = [
             'email' => 'incomplete@example.com',
             // username manquant
-            'password' => 'password',
+            'password' => 'StrongPass1!',
         ];
 
         $client->request(
@@ -52,7 +53,7 @@ class RegistrationControllerTest extends WebTestCase
 
         $this->assertResponseStatusCodeSame(400);
         $responseData = json_decode($client->getResponse()->getContent(), true);
-        $this->assertEquals('Missing required fields', $responseData['message']);
+        $this->assertEquals('Ils manquent des informations', $responseData['message']);
     }
 
     public function testRegisterInvalidJson(): void
@@ -71,7 +72,7 @@ class RegistrationControllerTest extends WebTestCase
 
         $this->assertResponseStatusCodeSame(400);
         $responseData = json_decode($client->getResponse()->getContent(), true);
-        $this->assertEquals('Invalid JSON', $responseData['message']);
+        $this->assertEquals('Erreur, veuillez réécrire vos informations', $responseData['message']);
     }
 
     public function testRegisterDuplicateEmail(): void
@@ -79,9 +80,9 @@ class RegistrationControllerTest extends WebTestCase
         $client = static::createClient();
 
         $payload = [
-            'email' => 'fasquelled@hotmail.com', // email déjà dans la fixture/admin
+            'email' => 'fasquelled@hotmail.com', // email déjà existant dans ta fixture
             'username' => 'duplicateuser',
-            'password' => 'password',
+            'password' => 'StrongPass1!',
         ];
 
         $client->request(
@@ -96,5 +97,29 @@ class RegistrationControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(409);
         $responseData = json_decode($client->getResponse()->getContent(), true);
         $this->assertEquals('Utilisateur déjà existant', $responseData['message']);
+    }
+
+    public function testRegisterWeakPassword(): void
+    {
+        $client = static::createClient();
+
+        $payload = [
+            'email' => 'weakpass@example.com',
+            'username' => 'weakuser',
+            'password' => '123', // trop faible
+        ];
+
+        $client->request(
+            'POST',
+            '/api/register',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode($payload)
+        );
+
+        $this->assertResponseStatusCodeSame(400);
+        $responseData = json_decode($client->getResponse()->getContent(), true);
+        $this->assertEquals('Le mot de passe est trop faible', $responseData['message']);
     }
 }

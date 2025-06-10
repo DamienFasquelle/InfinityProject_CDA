@@ -33,7 +33,7 @@ class TopicGenreController extends AbstractController
 
     // 🔐 Routes sécurisées pour l'administration
     #[Route('/api/topic-genre/create', name: 'create_genre', methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN')]
+    #[IsGranted("ROLE_ADMIN")]
     public function create(Request $request, EntityManagerInterface $em): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
